@@ -128,4 +128,4 @@ Este proyecto se publica bajo la licencia MIT. Puedes usarlo, modificarlo y dist
 
 ## 💡 Autoría
 
-Desarrollado por [Tu Nombre Aquí], 2025.
+Desarrollado por Sara Facal Boullosa, 2025.
