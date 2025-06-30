@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Gastos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Gestión de Gastos</h1>
+        {% if user.is_authenticated %}
+            <p>Bienvenida, {{ user.username }} | <a href="{% url 'logout' %}">Cerrar sesión</a></p>
+        {% else %}
+            <p><a href="{% url 'login' %}">Iniciar sesión</a> | <a href="{% url 'registro' %}">Registrarse</a></p>
+        {% endif %}
+        <hr>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

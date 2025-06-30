@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<a href="{% url 'crear_gasto' %}" class="btn btn-primary mb-3">Nuevo Gasto</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Categoría</th>
+            <th>Monto</th>
+            <th>Deuda Pareja</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for gasto in gastos %}
+        <tr>
+            <td>{{ gasto.fecha }}</td>
+            <td>{{ gasto.descripcion }}</td>
+            <td>{{ gasto.categoria }}</td>
+            <td>{{ gasto.monto_total }} €</td>
+            <td>{{ gasto.deuda_otro }} €</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
