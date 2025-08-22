@@ -1,27 +1,85 @@
 {% extends 'core/base.html' %}
-
 {% block content %}
-<a href="{% url 'crear_gasto' %}" class="btn btn-primary mb-3">Nuevo Gasto</a>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Fecha</th>
-            <th>Descripción</th>
-            <th>Categoría</th>
-            <th>Monto</th>
-            <th>Deuda Pareja</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for gasto in gastos %}
-        <tr>
-            <td>{{ gasto.fecha }}</td>
-            <td>{{ gasto.descripcion }}</td>
-            <td>{{ gasto.categoria }}</td>
-            <td>{{ gasto.monto_total }} €</td>
-            <td>{{ gasto.deuda_otro }} €</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="container mt-4">
+    <h2>Panel de Gastos</h2>
+    <a href="{% url 'crear_gasto' %}" class="btn btn-primary mb-3">Nuevo Gasto</a>
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Balance Total</h5>
+                    <p class="card-text {% if balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ balance|floatformat:2 }} €
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Por Cobrar</h5>
+                    <p class="card-text text-success">{{ por_cobrar|floatformat:2 }} €</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Deuda Total</h5>
+                    <p class="card-text text-danger">{{ deuda_total|floatformat:2 }} €</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h3>Gastos Pagados</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Total</th>
+                        <th>Por Cobrar (37%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gasto in gastos_pagados %}
+                    <tr>
+                        <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ gasto.descripcion }}</td>
+                        <td>{{ gasto.monto_total }} €</td>
+                        <td>{{ gasto.deuda_calculada|floatformat:2 }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="col-md-6">
+            <h3>Gastos Compartidos</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Total</th>
+                        <th>Mi Deuda (37%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gasto in gastos_compartidos %}
+                    <tr>
+                        <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ gasto.descripcion }}</td>
+                        <td>{{ gasto.monto_total }} €</td>
+                        <td>{{ gasto.deuda_calculada|floatformat:2 }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

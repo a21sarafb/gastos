@@ -1,0 +1,94 @@
+{% extends 'core/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Panel de Fondos Comunes</h2>
+    
+    <div class="row mt-4">
+        {% for fondo in fondos %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title">{{ fondo.get_tipo_display }}</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarFondo({{ fondo.id }}, '{{ fondo.get_tipo_display }}', {{ fondo.saldo }})">
+                            <i class="bi bi-pencil"></i> Editar saldo
+                        </button>
+                    </div>
+                    <h2 class="card-text text-primary" id="saldo-{{ fondo.id }}">{{ fondo.saldo|floatformat:2 }} €</h2>
+                    
+                    <!-- ...resto del código existente... -->
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal para editar saldo -->
+<div class="modal fade" id="editarFondoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Saldo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="fondo-id">
+                <div class="mb-3">
+                    <label class="form-label">Fondo:</label>
+                    <span id="fondo-nombre" class="form-text"></span>
+                </div>
+                <div class="mb-3">
+                    <label for="nuevo-saldo" class="form-label">Nuevo saldo:</label>
+                    <input type="number" class="form-control" id="nuevo-saldo" step="0.01">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarSaldo()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function editarFondo(id, nombre, saldo) {
+    document.getElementById('fondo-id').value = id;
+    document.getElementById('fondo-nombre').textContent = nombre;
+    document.getElementById('nuevo-saldo').value = saldo;
+    new bootstrap.Modal(document.getElementById('editarFondoModal')).show();
+}
+
+function guardarSaldo() {
+    const fondoId = document.getElementById('fondo-id').value;
+    const nuevoSaldo = document.getElementById('nuevo-saldo').value;
+    
+    fetch(`/fondos/actualizar/${fondoId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `saldo=${nuevoSaldo}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`saldo-${fondoId}`).textContent = `${data.nuevo_saldo.toFixed(2)} €`;
+            bootstrap.Modal.getInstance(document.getElementById('editarFondoModal')).hide();
+        } else {
+            alert('Error al actualizar el saldo');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar el saldo');
+    });
+}
+</script>
+{% endblock %}
