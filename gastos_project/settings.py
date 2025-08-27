@@ -15,6 +15,12 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# URL de los recursos estáticos
+STATIC_URL = '/static/'
+
+# Carpeta donde se guardarán los ficheros recopilados al ejecutar collectstatic
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -23,15 +29,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-rn@1%aci+nhpog7n2mtt2buwk@49t@!-)8i3gu&%%-qb93)4j='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 #DEBUG = True
 
-ALLOWED_HOSTS = [
+"""ALLOWED_HOSTS = [
     '127.0.0.1',                    # desarrollo local
     'localhost',
     'gastos-8pvm.onrender.com',     # tu dominio en Render
-]
+]"""
 
+import os
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "clave-insegura")
+DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",  # usa la base de datos de Koyeb
+        "NAME": os.environ.get("POSTGRES_DB", "dbname"),
+        "USER": os.environ.get("POSTGRES_USER", "user"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "password"),
+        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+    }
+}
 
 
 # Application definition
@@ -121,7 +143,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

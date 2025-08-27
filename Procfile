@@ -1,0 +1,1 @@
+web: gunicorn gastos_project.wsgi:application --log-file -
