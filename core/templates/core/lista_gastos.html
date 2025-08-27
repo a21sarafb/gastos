@@ -5,38 +5,37 @@
     <a href="{% url 'crear_gasto' %}" class="btn btn-primary mb-3">Nuevo Gasto</a>
     <div class="row mt-4">
         <div class="col-md-4">
-            <div class="card">
+            <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Balance Total</h5>
-                    <p class="card-text {% if balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    <p class="card-text {% if balance >= 0 %}text-success{% else %}text-danger{% endif %} fs-4 fw-semibold">
                         {{ balance|floatformat:2 }} €
                     </p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card">
+            <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Por Cobrar</h5>
-                    <p class="card-text text-success">{{ por_cobrar|floatformat:2 }} €</p>
+                    <p class="card-text text-success fs-4 fw-semibold">{{ por_cobrar|floatformat:2 }} €</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card">
+            <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Deuda Total</h5>
-                    <p class="card-text text-danger">{{ deuda_total|floatformat:2 }} €</p>
+                    <p class="card-text text-danger fs-4 fw-semibold">{{ deuda_total|floatformat:2 }} €</p>
                 </div>
             </div>
         </div>
     </div>
-
     <div class="row mt-4">
         <div class="col-md-6">
             <h3>Gastos Pagados</h3>
-            <table class="table">
-                <thead>
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
                     <tr>
                         <th>Fecha</th>
                         <th>Descripción</th>
@@ -56,11 +55,10 @@
                 </tbody>
             </table>
         </div>
-        
         <div class="col-md-6">
             <h3>Gastos Compartidos</h3>
-            <table class="table">
-                <thead>
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
                     <tr>
                         <th>Fecha</th>
                         <th>Descripción</th>

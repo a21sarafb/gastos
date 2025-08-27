@@ -1,24 +1,52 @@
 {% extends 'core/base.html' %}
 {% load custom_filters %}
 
+{#
+    Plantilla para el panel de fondos comunes.
+
+    Se muestran todas las cuentas compartidas (fondos) junto con su saldo,
+    aportación mensual prevista y la última fecha de actualización. Además
+    se incluye un botón para editar manualmente el saldo mediante una
+    petición AJAX.
+#}
+
 {% block content %}
 <div class="container mt-4">
     <h2>Panel de Fondos Comunes</h2>
-    
+    <!-- Tarjeta con el saldo total en la cuenta conjunta -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Saldo total</h5>
+                    <p class="card-text fs-3 fw-semibold">{{ saldo_total|floatformat:2 }} €</p>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row mt-4">
         {% for fondo in fondos %}
         <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-body">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column justify-content-between">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title">{{ fondo.get_tipo_display }}</h5>
+                        <h5 class="card-title mb-0">{{ fondo.get_tipo_display }}</h5>
                         <button class="btn btn-sm btn-outline-primary" onclick="editarFondo({{ fondo.id }}, '{{ fondo.get_tipo_display }}', {{ fondo.saldo }})">
                             <i class="bi bi-pencil"></i> Editar saldo
                         </button>
                     </div>
-                    <h2 class="card-text text-primary" id="saldo-{{ fondo.id }}">{{ fondo.saldo|floatformat:2 }} €</h2>
-                    
-                    <!-- ...resto del código existente... -->
+                    <h2 class="card-text text-primary my-2" id="saldo-{{ fondo.id }}">{{ fondo.saldo|floatformat:2 }} €</h2>
+                    {# Sección que muestra la aportación mensual por fondo #}
+                    {% with ap=aportaciones|get_item:fondo.tipo %}
+                    <div class="mt-2">
+                        <p class="mb-1"><strong>Aportación mensual total:</strong> {{ ap.total|floatformat:2 }} €</p>
+                        <p class="mb-1">
+                            <span class="text-success">Sara:</span> {{ ap.sara|floatformat:2 }} €<br>
+                            <span class="text-info">Adri:</span> {{ ap.adri|floatformat:2 }} €
+                        </p>
+                        <p class="text-muted"><small>Última actualización: {{ fondo.ultima_actualizacion|date:"d/m/Y" }}</small></p>
+                    </div>
+                    {% endwith %}
                 </div>
             </div>
         </div>
@@ -26,7 +54,7 @@
     </div>
 </div>
 
-<!-- Modal para editar saldo -->
+{# Modal para editar saldo de un fondo. Se reutiliza el código existente, ajustando identificadores. #}
 <div class="modal fade" id="editarFondoModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -67,28 +95,27 @@ function editarFondo(id, nombre, saldo) {
 function guardarSaldo() {
     const fondoId = document.getElementById('fondo-id').value;
     const nuevoSaldo = document.getElementById('nuevo-saldo').value;
-    
     fetch(`/fondos/actualizar/${fondoId}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
         },
-        body: `saldo=${nuevoSaldo}`
+        body: `saldo=${nuevoSaldo}`,
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById(`saldo-${fondoId}`).textContent = `${data.nuevo_saldo.toFixed(2)} €`;
-            bootstrap.Modal.getInstance(document.getElementById('editarFondoModal')).hide();
-        } else {
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                document.getElementById(`saldo-${fondoId}`).textContent = `${data.nuevo_saldo.toFixed(2)} €`;
+                bootstrap.Modal.getInstance(document.getElementById('editarFondoModal')).hide();
+            } else {
+                alert('Error al actualizar el saldo');
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
             alert('Error al actualizar el saldo');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al actualizar el saldo');
-    });
+        });
 }
 </script>
 {% endblock %}

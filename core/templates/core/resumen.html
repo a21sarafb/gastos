@@ -1,0 +1,103 @@
+{% extends 'core/base.html' %}
+
+{#
+    Plantilla para mostrar gráficos estadísticos de los gastos.
+
+    Se utilizan dos gráficos de Chart.js: uno de tipo pastel para mostrar el
+    reparto de gastos por categoría en el mes actual y otro de tipo barra
+    para mostrar la evolución de los gastos totales en los últimos seis
+    meses. Los datos se reciben desde la vista ``resumen_finanzas`` en
+    formato JSON.
+#}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Resumen de Finanzas</h2>
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Gastos por categoría (mes actual)</h4>
+                    <canvas id="graficoCategorias" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Gastos totales últimos meses</h4>
+                    <canvas id="graficoMeses" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Cargamos Chart.js desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Datos de categorías y totales por categoría
+const labelsCategoria = {{ labels_categoria|safe }};
+const dataCategoria = {{ data_categoria|safe }};
+const ctxCat = document.getElementById('graficoCategorias').getContext('2d');
+new Chart(ctxCat, {
+    type: 'pie',
+    data: {
+        labels: labelsCategoria,
+        datasets: [{
+            data: dataCategoria,
+            backgroundColor: [
+                '#FFCDD2', // Supermercado - rojo pastel
+                '#FFE0B2', // Viajes - naranja pastel
+                '#C8E6C9', // Gastos piso - verde pastel
+                '#BBDEFB', // Compras piso - azul pastel
+                '#E1BEE7', // Ocio - púrpura pastel
+                '#F8BBD0', // Otros - rosa pastel
+            ],
+            borderWidth: 1,
+        }],
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            },
+        },
+    },
+});
+
+// Datos de meses y totales por mes
+const labelsMes = {{ labels_mes|safe }};
+const dataMes = {{ data_mes|safe }};
+const ctxMes = document.getElementById('graficoMeses').getContext('2d');
+new Chart(ctxMes, {
+    type: 'bar',
+    data: {
+        labels: labelsMes,
+        datasets: [{
+            label: 'Total Gastos',
+            data: dataMes,
+            backgroundColor: '#F8BBD0', // barra pastel rosa
+            borderColor: '#F48FB1', // borde rosa más intenso
+            borderWidth: 1,
+        }],
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+            },
+        },
+        plugins: {
+            legend: {
+                display: false,
+            },
+        },
+    },
+});
+</script>
+{% endblock %}

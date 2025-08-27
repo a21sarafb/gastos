@@ -1,6 +1,19 @@
 from django import template
 
+
+"""
+Filtros personalizados utilizados en las plantillas.
+
+Se define un filtro ``absolute`` que devuelve el valor absoluto y un filtro
+``get_item`` que permite obtener un elemento de un diccionario usando una
+clave dinámica (útil para acceder a diccionarios en plantillas de Django).
+
+Este fichero debe mantenerse dentro del paquete ``templatetags`` para que
+Django pueda cargar automáticamente los filtros.
+"""
+
 register = template.Library()
+
 
 @register.filter(name='absolute')
 def absolute(value):
@@ -10,6 +23,8 @@ def absolute(value):
     except (TypeError, ValueError):
         return value
 
+
 @register.filter
 def get_item(dictionary, key):
+    """Devuelve el valor asociado a ``key`` en ``dictionary`` o ``None``."""
     return dictionary.get(key)
