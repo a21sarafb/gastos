@@ -1,6 +1,6 @@
 # App de Gestión de Gastos Compartidos
 
-Aplicación web desarrollada con Django para gestionar gastos compartidos entre dos personas, con reparto proporcional configurable según sus ingresos. Accesible desde iPhone como PWA y diseñada para futuras ampliaciones con IA/ML.
+Aplicación web desarrollada con Django para gestionar gastos compartidos entre dos personas, con reparto proporcional configurable según sus ingresos. Diseñada para futuras ampliaciones con IA/ML.
 
 ## Funcionalidades
 - Gestión de usuarios: registro e inicio de sesión seguro mediante Django, con perfiles asociados a cada persona.
@@ -87,27 +87,6 @@ u1 = User.objects.create_user(username='sara', password='1234')
 u2 = User.objects.create_user(username='adri', password='1234')
 u1.userprofile.porcentaje_actual = 63; u1.userprofile.save()
 u2.userprofile.porcentaje_actual = 37; u2.userprofile.save()
-```
-
-## Estructura de carpetas
-```
-gastos_project/
-├── core/
-│   ├── models.py
-│   ├── views.py
-│   ├── forms.py
-│   ├── urls.py
-│   └── templates/core/
-│       ├── base.html
-│       ├── login.html
-│       ├── registro.html
-│       ├── lista_gastos.html
-│       └── crear_gasto.html
-├── gastos_project/
-│   ├── settings.py
-│   ├── urls.py
-├── db.sqlite3
-└── manage.py
 ```
 
 ## Acceso al panel de administración
