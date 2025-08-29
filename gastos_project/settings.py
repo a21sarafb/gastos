@@ -33,8 +33,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Tu aplicación principal
     "core.apps.CoreConfig",
+    "core",  # forma corta
 ]
 
 # Middleware

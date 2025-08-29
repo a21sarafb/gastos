@@ -156,13 +156,22 @@ def crear_perfil_usuario(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance)
 
 
+# core/models.py
+from django.db import connection, OperationalError, ProgrammingError
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+
 @receiver(post_save, sender=User)
 def guardar_perfil_usuario(sender, instance, **kwargs):
-    """Guarda el perfil de usuario cuando se actualiza el modelo User.
-
-    Si el perfil no existe (caso improbable), se crea automáticamente.
-    """
     try:
+        # si la DB aún no tiene la tabla (primer arranque), salimos sin hacer nada
+        if 'core_userprofile' not in connection.introspection.table_names():
+            return
+        # si existe, intentamos guardar
         instance.userprofile.save()
     except UserProfile.DoesNotExist:
         UserProfile.objects.create(user=instance)
+    except (OperationalError, ProgrammingError):
+        # base aún sin migrar: no bloqueamos el login
+        pass
