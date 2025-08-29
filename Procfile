@@ -1,1 +1,1 @@
-web: gunicorn gastos_project.wsgi:application --log-file -
+web: bash -c "python manage.py migrate --noinput && gunicorn gastos_project.wsgi:application --log-file -"
