@@ -72,7 +72,7 @@ TEMPLATES = [
 
 # Objeto WSGI
 WSGI_APPLICATION = "gastos_project.wsgi.application"
-
+"""
 # Base de datos: usa PostgreSQL en Koyeb o SQLite por defecto
 DATABASES = {
     "default": {
@@ -91,6 +91,37 @@ DATABASES = {
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
+"""
+
+# gastos_project/settings.py
+from pathlib import Path
+import os
+import dj_database_url
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+DB_URL = os.environ.get("DATABASE_URL", "").strip()
+
+if DB_URL:
+    # Fuerza SSL solo si es Postgres
+    SSL_REQUIRED = DB_URL.startswith(("postgres://", "postgresql://"))
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DB_URL,
+            conn_max_age=600,
+            ssl_require=SSL_REQUIRED,
+        )
+    }
+else:
+    # Local por defecto: SQLite sin opciones raras
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+
 
 # Validadores de contraseña
 AUTH_PASSWORD_VALIDATORS = [
