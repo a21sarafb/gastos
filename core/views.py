@@ -45,10 +45,10 @@ PORCENTAJE_ADRI = Decimal('0.37')
 
 # Montos mensuales asignados a cada fondo común
 MONTOS_MENSUALES = {
-    'SUPERMERCADO': Decimal('200'),  # Comida y supermercado
-    'GASTOS': Decimal('150'),        # Facturas del piso (luz, agua, etc.)
+    'SUPERMERCADO': Decimal('250'),  # Comida y supermercado
+    'GASTOS': Decimal('200'),        # Facturas del piso (luz, agua, etc.)
     'VIAJES': Decimal('100'),        # Ahorro para viajes
-    'COMPRAS': Decimal('100'),       # Compras puntuales del piso
+    'COMPRAS': Decimal('150'),       # Compras puntuales del piso
     'AHORRO': Decimal('150'),        # Ahorro de pareja (boda, hijos, ...)
 }
 
