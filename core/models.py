@@ -175,3 +175,12 @@ def guardar_perfil_usuario(sender, instance, **kwargs):
     except (OperationalError, ProgrammingError):
         # base aún sin migrar: no bloqueamos el login
         pass
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=IngresoFondo)
+def actualizar_saldo_fondo(sender, instance, created, **kwargs):
+    if created:
+        fondo = instance.fondo
+        fondo.saldo += instance.cantidad
+        fondo.save()

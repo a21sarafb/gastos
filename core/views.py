@@ -43,50 +43,28 @@ añadiendo los nuevos colores para la categoría ``Compras piso``.
 PORCENTAJE_SARA = Decimal('0.63')
 PORCENTAJE_ADRI = Decimal('0.37')
 
-# Montos mensuales asignados a cada fondo común
-MONTOS_MENSUALES = {
-    'SUPERMERCADO': Decimal('250'),  # Comida y supermercado
-    'GASTOS': Decimal('200'),        # Facturas del piso (luz, agua, etc.)
-    'VIAJES': Decimal('100'),        # Ahorro para viajes
-    'COMPRAS': Decimal('150'),       # Compras puntuales del piso
-    'AHORRO': Decimal('150'),        # Ahorro de pareja (boda, hijos, ...)
-}
+# Nota: los montos mensuales ya no se definen de forma estática.
+#       En lugar de ello se registran como objetos ``IngresoFondo``
+#       desde el panel de administración.  Los saldos de cada
+#       ``FondoComun`` se actualizan automáticamente cuando se crea
+#       un ``IngresoFondo`` (ver señal en ``models.py``) y el panel
+#       de fondos calcula las aportaciones mensuales de forma
+#       dinámica.
+MONTOS_MENSUALES = {}
+
 
 
 def actualizar_fondos_mensuales() -> None:
-    """Actualiza el saldo de todos los fondos una vez al mes.
-
-    Comprueba la fecha de ``ultima_actualizacion`` de cada ``FondoComun`` y,
-    si es anterior al primer día del mes en curso, se añaden las aportaciones
-    correspondientes. Las aportaciones se reparten entre Sara y Adri según
-    los porcentajes definidos y se registran en ``IngresoFondo``.
     """
-    hoy = datetime.date.today()
-    primer_dia_mes = hoy.replace(day=1)
-    fondos = FondoComun.objects.all()
-    for fondo in fondos:
-        # Si el fondo no se ha actualizado este mes, se añaden las aportaciones
-        if fondo.ultima_actualizacion < primer_dia_mes:
-            total_mensual = MONTOS_MENSUALES.get(fondo.tipo)
-            if not total_mensual:
-                continue
-            # Actualizar saldo y fecha de última actualización
-            fondo.saldo += total_mensual
-            fondo.ultima_actualizacion = hoy
-            fondo.save()
-            # Obtener usuarios (se asume que existen usuarios con username 'sara' y 'adri')
-            try:
-                sara = User.objects.get(username='sara')
-                adri = User.objects.get(username='adri')
-            except User.DoesNotExist:
-                # Si no existen, no podemos registrar aportaciones individuales
-                continue
-            # Calcular aportación de cada usuaria
-            sara_amount = (total_mensual * PORCENTAJE_SARA).quantize(Decimal('0.01'))
-            adri_amount = (total_mensual * PORCENTAJE_ADRI).quantize(Decimal('0.01'))
-            # Registrar ingresos individuales en la tabla IngresoFondo
-            IngresoFondo.objects.create(fondo=fondo, cantidad=sara_amount, usuario=sara)
-            IngresoFondo.objects.create(fondo=fondo, cantidad=adri_amount, usuario=adri)
+    Mantenemos esta función por compatibilidad con código antiguo, pero ya no
+    realiza ingresos automáticos a los fondos comunes.  La lógica de
+    aportaciones mensuales se gestiona de forma dinámica mediante objetos
+    ``IngresoFondo`` creados por el administrador.  Puedes eliminar la
+    llamada a esta función en ``panel_fondos`` para evitar efectos secundarios.
+    """
+    # No hacemos nada: las aportaciones se gestionan manualmente a través de
+    # ingresos registrados desde el panel de administración.
+    return
 
 
 @login_required
@@ -112,6 +90,7 @@ def crear_gasto(request):
             categoria = request.POST.get('categoria')
             pagado_por_id = request.POST.get('pagado_por')
             fecha = request.POST.get('fecha')
+            # Fondo enviado desde el formulario (puede venir vacío)
             fondo_id = request.POST.get('fondo')
 
             if not all([descripcion, monto_total, categoria, pagado_por_id, fecha]):
@@ -128,17 +107,32 @@ def crear_gasto(request):
 
             # Obtener el usuario que pagó
             pagador = User.objects.get(id=pagado_por_id)
-            # Obtener el fondo seleccionado si existe
+            # Determinar el fondo asociado a la categoría si no se ha seleccionado uno
+            categoria_map = {
+                '1': 'SUPERMERCADO',  # Supermercado
+                '3': 'GASTOS',       # Gastos piso
+                '2': 'VIAJES',       # Viajes
+                '6': 'COMPRAS',      # Compras piso
+            }
             fondo = None
-            if fondo_id:
+            # Si el usuario no seleccionó un fondo manualmente y la categoría está
+            # asociada a un fondo, lo asignamos automáticamente.
+            if not fondo_id and categoria in categoria_map:
                 try:
-                    fondo = FondoComun.objects.get(id=fondo_id)
-                    # Verificar saldo suficiente
-                    if fondo.saldo < Decimal(monto_total):
-                        messages.error(request, 'No hay saldo suficiente en el fondo')
-                        return redirect('crear_gasto')
+                    fondo = FondoComun.objects.get(tipo=categoria_map[categoria])
                 except FondoComun.DoesNotExist:
                     fondo = None
+            # Si el formulario incluye un fondo manualmente lo usamos en su lugar
+            elif fondo_id:
+                try:
+                    fondo = FondoComun.objects.get(id=fondo_id)
+                except FondoComun.DoesNotExist:
+                    fondo = None
+            # Verificar saldo suficiente si hay fondo
+            if fondo:
+                if fondo.saldo < Decimal(monto_total):
+                    messages.error(request, 'No hay saldo suficiente en el fondo')
+                    return redirect('crear_gasto')
 
             # Crear y guardar el gasto
             gasto = Gasto(
@@ -256,10 +250,27 @@ def panel_gastos(request):
     gastos_procesados = []
     for gasto in todos_los_gastos:
         categoria_nombre = gasto.get_categoria_display() or ''
-        # Calcular el reparto (mismo porcentaje independientemente de quién paga)
+        # Calcular el reparto proporcional independientemente de quién paga
         parte_sara = gasto.monto_total * PORCENTAJE_SARA
         parte_adri = gasto.monto_total * PORCENTAJE_ADRI
-        # Balance de deuda según quién pagó
+        # Si el gasto pertenece a un fondo común, no afecta a la deuda
+        if gasto.fondo:
+            gastos_procesados.append(
+                {
+                    'fecha': gasto.fecha,
+                    'descripcion': gasto.descripcion,
+                    'monto_total': gasto.monto_total,
+                    'parte_sara': parte_sara,
+                    'parte_adri': parte_adri,
+                    # Indicamos que el gasto se pagó desde el fondo
+                    'pagado_por': 'Cuenta común',
+                    'categoria': categoria_nombre,
+                    'color_clase': CATEGORIA_COLORES.get(categoria_nombre, ''),
+                }
+            )
+            # saltamos el cálculo de deuda para este gasto
+            continue
+        # Balance de deuda según quién pagó cuando no hay fondo asociado
         if gasto.pagado_por == usuario_actual:
             if usuario_actual == sara:
                 deuda_total += parte_adri  # Adri le debe a Sara
@@ -298,18 +309,32 @@ def panel_gastos(request):
 
 @login_required
 def panel_fondos(request):
-    """Muestra el panel de fondos comunes y actualiza los saldos mensuales."""
-    # Actualizar fondos al inicio de mes si es necesario
-    actualizar_fondos_mensuales()
-    # Obtener todos los fondos para mostrar
+    """
+    Muestra el panel de fondos comunes.
+
+    En lugar de basarse en montos fijos predefinidos, esta vista calcula las
+    aportaciones del mes actual sumando los registros de ``IngresoFondo``.
+    De este modo, el administrador puede ingresar diferentes cantidades en
+    distintos meses y crear o eliminar aportaciones sin tener que tocar el
+    código.
+    """
     fondos = FondoComun.objects.all()
-    # Calcular aportaciones previstas para cada fondo según los montos mensuales
+    # Fecha del primer día del mes actual para filtrar ingresos
+    primer_dia_mes = datetime.date.today().replace(day=1)
+    # Calculamos las aportaciones del mes para cada fondo y cada usuaria
     aportaciones = {}
-    for tipo, total in MONTOS_MENSUALES.items():
-        aportaciones[tipo] = {
-            'total': total,
-            'sara': (total * PORCENTAJE_SARA).quantize(Decimal('0.01')),
-            'adri': (total * PORCENTAJE_ADRI).quantize(Decimal('0.01')),
+    for fondo in fondos:
+        # Ingresos del mes para este fondo
+        ingresos_mes = IngresoFondo.objects.filter(fondo=fondo, fecha__gte=primer_dia_mes)
+        total = ingresos_mes.aggregate(suma=Sum('cantidad'))['suma'] or Decimal('0')
+        # Suma por usuaria
+        sara_total = ingresos_mes.filter(usuario__username='sara').aggregate(suma=Sum('cantidad'))['suma'] or Decimal('0')
+        adri_total = ingresos_mes.filter(usuario__username='adri').aggregate(suma=Sum('cantidad'))['suma'] or Decimal('0')
+        # Guardamos usando el id del fondo para poder acceder fácilmente desde la plantilla
+        aportaciones[fondo.id] = {
+            'total': total.quantize(Decimal('0.01')),
+            'sara': sara_total.quantize(Decimal('0.01')),
+            'adri': adri_total.quantize(Decimal('0.01')),
         }
     # Calcular saldo total en todos los fondos
     saldo_total = sum(f.saldo for f in fondos)
