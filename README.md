@@ -1,4 +1,4 @@
-# App de Gestión de Gastos Compartidos
+# App de gestión de gastos compartidos
 
 Aplicación web desarrollada con Django para gestionar gastos compartidos entre dos personas, con reparto proporcional configurable según sus ingresos. Diseñada para futuras ampliaciones con IA/ML.
 
