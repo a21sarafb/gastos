@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import UserProfile, Categoria, Gasto, FondoComun, IngresoFondo
+from .models import UserProfile, Categoria, Gasto, FondoComun, IngresoFondo, GastoRecurrente, ObjetivoAhorro
 
 
 """
@@ -17,3 +17,10 @@ admin.site.register(Categoria)
 admin.site.register(Gasto)
 admin.site.register(FondoComun)
 admin.site.register(IngresoFondo)
+@admin.register(GastoRecurrente)
+class GastoRecurrenteAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'monto', 'periodicidad', 'categoria', 'fondo', 'prorratear', 'activo')
+
+@admin.register(ObjetivoAhorro)
+class ObjetivoAhorroAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'monto_objetivo', 'aporte_mensual', 'fondo_destino', 'activo')

@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from decimal import Decimal
+from datetime import date
 import logging
 
 
@@ -184,3 +185,47 @@ def actualizar_saldo_fondo(sender, instance, created, **kwargs):
         fondo = instance.fondo
         fondo.saldo += instance.cantidad
         fondo.save()
+
+class GastoRecurrente(models.Model):
+    PERIODICIDADES = [
+        ('MENSUAL', 'Mensual'),
+        ('ANUAL', 'Anual'),
+    ]
+    nombre = models.CharField(max_length=120)
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    periodicidad = models.CharField(max_length=10, choices=PERIODICIDADES, default='MENSUAL')
+    categoria = models.CharField(max_length=20, choices=[  # usa las mismas categorías que Gasto
+        ('1', 'Supermercado'),
+        ('2', 'Viajes'),
+        ('3', 'Gastos piso'),
+        ('4', 'Ocio'),
+        ('5', 'Otros'),
+        ('6', 'Compras piso'),
+    ], default='5')
+    fondo = models.ForeignKey('FondoComun', on_delete=models.SET_NULL, null=True, blank=True)
+    prorratear = models.BooleanField(default=False)  # solo relevante si periodicidad = ANUAL
+    activo = models.BooleanField(default=True)
+    # Para evitar duplicados, guardamos el último mes/año aplicado
+    ultimo_ano_aplicado = models.IntegerField(null=True, blank=True)
+    ultimo_mes_aplicado = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.nombre} ({self.periodicidad})"
+
+
+class ObjetivoAhorro(models.Model):
+    """
+    Representa una compra/objetivo que quieres ir 'provisionando' mes a mes
+    como si fuera un gasto, moviendo dinero del saldo conjunto a un fondo (p.ej. COMPRAS o AHORRO).
+    """
+    nombre = models.CharField(max_length=120)
+    monto_objetivo = models.DecimalField(max_digits=10, decimal_places=2)
+    aporte_mensual = models.DecimalField(max_digits=10, decimal_places=2)
+    fondo_destino = models.ForeignKey('FondoComun', on_delete=models.CASCADE)  # donde "guardas" el ahorro
+    activo = models.BooleanField(default=True)
+    # control de duplicados
+    ultimo_ano_aplicado = models.IntegerField(null=True, blank=True)
+    ultimo_mes_aplicado = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.nombre} → objetivo {self.monto_objetivo}€"

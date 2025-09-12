@@ -7,11 +7,49 @@ from django.contrib.auth.models import User
 from decimal import Decimal
 import datetime
 
-from .models import UserProfile, Categoria, Gasto, FondoComun, IngresoFondo
+from .models import UserProfile, Categoria, Gasto, FondoComun, IngresoFondo, GastoRecurrente, ObjetivoAhorro
 from .forms import GastoForm, RegistroForm
 import json
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
+
+def aplicar_gastos_recurrentes_y_objetivos():
+    hoy = datetime.date.today()
+
+    def ya_aplicado(ultimo_ano, ultimo_mes):
+        return (ultimo_ano == hoy.year and ultimo_mes == hoy.month)
+
+    # Gastos recurrentes
+    for rec in GastoRecurrente.objects.filter(activo=True):
+        if ya_aplicado(rec.ultimo_ano_aplicado, rec.ultimo_mes_aplicado):
+            continue
+        # mensual o anual prorrateado
+        monto = rec.monto if rec.periodicidad == 'MENSUAL' else (
+            rec.monto/Decimal('12') if rec.prorratear else rec.monto)
+        # crea el gasto
+        Gasto.objects.create(
+            descripcion=f"[Recurrente] {rec.nombre}",
+            monto_total=monto.quantize(Decimal('0.01')),
+            categoria=rec.categoria,
+            pagado_por=User.objects.filter(username__in=['sara','adri']).first(),
+            fecha=hoy,
+            fondo=rec.fondo
+        )
+        rec.ultimo_ano_aplicado, rec.ultimo_mes_aplicado = hoy.year, hoy.month
+        rec.save(update_fields=['ultimo_ano_aplicado','ultimo_mes_aplicado'])
+
+    # Objetivos de ahorro
+    for obj in ObjetivoAhorro.objects.filter(activo=True):
+        if ya_aplicado(obj.ultimo_ano_aplicado, obj.ultimo_mes_aplicado):
+            continue
+        # crea el ingreso al fondo (suma saldo)
+        IngresoFondo.objects.create(
+            fondo=obj.fondo_destino,
+            cantidad=obj.aporte_mensual.quantize(Decimal('0.01')),
+            usuario=User.objects.filter(username__in=['sara','adri']).first()
+        )
+        obj.ultimo_ano_aplicado, obj.ultimo_mes_aplicado = hoy.year, hoy.month
+        obj.save(update_fields=['ultimo_ano_aplicado','ultimo_mes_aplicado'])
 
 
 """
@@ -128,11 +166,15 @@ def crear_gasto(request):
                     fondo = FondoComun.objects.get(id=fondo_id)
                 except FondoComun.DoesNotExist:
                     fondo = None
-            # Verificar saldo suficiente si hay fondo
+            """# Verificar saldo suficiente si hay fondo
             if fondo:
                 if fondo.saldo < Decimal(monto_total):
                     messages.error(request, 'No hay saldo suficiente en el fondo')
-                    return redirect('crear_gasto')
+                    return redirect('crear_gasto')"""
+            # Avisar si el gasto supera el saldo pero permitir su creación
+            if fondo and fondo.saldo < Decimal(monto_total):
+                messages.warning(request, 'El gasto supera el saldo disponible del fondo; el saldo quedará en negativo.')
+
 
             # Crear y guardar el gasto
             gasto = Gasto(
@@ -206,6 +248,8 @@ def logout_usuario(request):
 
 @login_required
 def panel_gastos(request):
+    aplicar_gastos_recurrentes_y_objetivos()
+
     """Muestra el panel de gastos con balance y listado de todos los gastos."""
     # Mapeo de identificadores a nombres de categoría (por compatibilidad)
     CATEGORIA_NOMBRES = {
@@ -309,6 +353,7 @@ def panel_gastos(request):
 
 @login_required
 def panel_fondos(request):
+    aplicar_gastos_recurrentes_y_objetivos()
     """
     Muestra el panel de fondos comunes.
 
