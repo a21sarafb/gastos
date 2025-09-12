@@ -79,17 +79,6 @@ function guardarSaldo() {
                         <h2 class="card-text text-primary my-2" id="saldo-{{ fondo.id }}">{{ fondo.saldo|floatformat:2 }} €</h2>
                     {% endif %}
 
-                    {# Sección que muestra la aportación mensual por fondo 
-                    {% with ap=aportaciones|get_item:fondo.id %}
-                    <div class="mt-2">
-                        <p class="mb-1"><strong>Aportación mensual total:</strong> {{ ap.total|floatformat:2 }} € </p>
-                        <p class="mb-1">
-                            <span class="text-success">Sara:</span> {{ ap.sara|floatformat:2 }} €<br>
-                            <span class="text-info">Adri:</span> {{ ap.adri|floatformat:2 }} €
-                        </p>
-                    </div>
-                    {% endwith %}
-                     #}
                 </div>
             </div>
         </div>
