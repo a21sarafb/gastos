@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from decimal import Decimal
 from datetime import date
+from django.db import connection, OperationalError, ProgrammingError
 import logging
 
 
@@ -95,24 +96,19 @@ class FondoComun(models.Model):
     def __str__(self) -> str:  # pragma: no cover - representación trivial
         return f"{self.get_tipo_display()} - Saldo: {self.saldo}€"
 
-
 class IngresoFondo(models.Model):
-    """Registro de aportaciones realizadas a un fondo común.
-
-    Se guarda la referencia al fondo, la cantidad ingresada y quién ha
-    aportado el dinero. La fecha se asigna automáticamente al crearse
-    el registro.
-    """
-
-    fondo = models.ForeignKey(FondoComun, on_delete=models.CASCADE)
-    fecha = models.DateField(auto_now_add=True)
+    fondo = models.ForeignKey('FondoComun', on_delete=models.CASCADE)
     cantidad = models.DecimalField(max_digits=10, decimal_places=2)
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha = models.DateField(auto_now_add=True)
+    # ✅ permitir nulos (así no se atribuye a Sara/Adri cuando sea automático)
+    usuario = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
-    class Meta:
-        verbose_name = 'Ingreso a fondo'
-        verbose_name_plural = 'Ingresos a fondos'
+    # ✅ nuevo: distinguir ingresos automáticos (objetivos) de los manuales
+    es_automatico = models.BooleanField(default=False)
 
+    def __str__(self):
+        who = self.usuario.username if self.usuario else "automático"
+        return f"{who} +{self.cantidad} → {self.fondo.nombre}"
 
 class Gasto(models.Model):
     """Modelo que representa un gasto individual.
@@ -156,12 +152,6 @@ def crear_perfil_usuario(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
 
-
-# core/models.py
-from django.db import connection, OperationalError, ProgrammingError
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.contrib.auth.models import User
 
 @receiver(post_save, sender=User)
 def guardar_perfil_usuario(sender, instance, **kwargs):

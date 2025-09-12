@@ -13,43 +13,68 @@ import json
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 
+from django.db import transaction
+
+
 def aplicar_gastos_recurrentes_y_objetivos():
     hoy = datetime.date.today()
 
     def ya_aplicado(ultimo_ano, ultimo_mes):
-        return (ultimo_ano == hoy.year and ultimo_mes == hoy.month)
+        return ultimo_ano == hoy.year and ultimo_mes == hoy.month
 
-    # Gastos recurrentes
-    for rec in GastoRecurrente.objects.filter(activo=True):
-        if ya_aplicado(rec.ultimo_ano_aplicado, rec.ultimo_mes_aplicado):
-            continue
-        # mensual o anual prorrateado
-        monto = rec.monto if rec.periodicidad == 'MENSUAL' else (
-            rec.monto/Decimal('12') if rec.prorratear else rec.monto)
-        # crea el gasto
-        Gasto.objects.create(
-            descripcion=f"[Recurrente] {rec.nombre}",
-            monto_total=monto.quantize(Decimal('0.01')),
-            categoria=rec.categoria,
-            pagado_por=User.objects.filter(username__in=['sara','adri']).first(),
-            fecha=hoy,
-            fondo=rec.fondo
-        )
-        rec.ultimo_ano_aplicado, rec.ultimo_mes_aplicado = hoy.year, hoy.month
-        rec.save(update_fields=['ultimo_ano_aplicado','ultimo_mes_aplicado'])
+    with transaction.atomic():
+        # === Gastos recurrentes (suscripciones / caldera) ===
+        for rec in GastoRecurrente.objects.filter(activo=True):
+            if ya_aplicado(rec.ultimo_ano_aplicado, rec.ultimo_mes_aplicado):
+                continue
 
-    # Objetivos de ahorro
-    for obj in ObjetivoAhorro.objects.filter(activo=True):
-        if ya_aplicado(obj.ultimo_ano_aplicado, obj.ultimo_mes_aplicado):
-            continue
-        # crea el ingreso al fondo (suma saldo)
-        IngresoFondo.objects.create(
-            fondo=obj.fondo_destino,
-            cantidad=obj.aporte_mensual.quantize(Decimal('0.01')),
-            usuario=User.objects.filter(username__in=['sara','adri']).first()
-        )
-        obj.ultimo_ano_aplicado, obj.ultimo_mes_aplicado = hoy.year, hoy.month
-        obj.save(update_fields=['ultimo_ano_aplicado','ultimo_mes_aplicado'])
+            # mensual completo o anual prorrateado
+            monto_mes = (
+                rec.monto if rec.periodicidad == 'MENSUAL'
+                else (rec.monto / Decimal('12')) if rec.prorratear
+                else rec.monto
+            ).quantize(Decimal('0.01'))
+
+            # crea el gasto (siempre de la cuenta conjunta; da igual quién aparezca como pagador)
+            gasto = Gasto.objects.create(
+                descripcion=f"[Recurrente] {rec.nombre}",
+                monto_total=monto_mes,
+                categoria=rec.categoria,
+                pagado_por=User.objects.filter(username__in=['sara','adri']).first(),
+                fecha=hoy,
+                fondo=rec.fondo
+            )
+
+            # descuenta manualmente del saldo del fondo si corresponde
+            if rec.fondo:
+                rec.fondo.saldo -= monto_mes
+                rec.fondo.save(update_fields=['saldo'])
+
+            # marca como aplicado este mes
+            rec.ultimo_ano_aplicado = hoy.year
+            rec.ultimo_mes_aplicado = hoy.month
+            rec.save(update_fields=['ultimo_ano_aplicado', 'ultimo_mes_aplicado'])
+
+        # === Objetivos de ahorro ===
+        for obj in ObjetivoAhorro.objects.filter(activo=True):
+            if ya_aplicado(obj.ultimo_ano_aplicado, obj.ultimo_mes_aplicado):
+                continue
+
+            aporte = obj.aporte_mensual.quantize(Decimal('0.01'))
+
+            # ingreso automático al fondo (no se adjudica a Sara/Adri)
+            IngresoFondo.objects.create(
+                fondo=obj.fondo_destino,
+                cantidad=aporte,
+                usuario=None,
+                es_automatico=True
+            )
+            # si tienes señal post_save en IngresoFondo, el saldo se suma automáticamente
+
+            obj.ultimo_ano_aplicado = hoy.year
+            obj.ultimo_mes_aplicado = hoy.month
+            obj.save(update_fields=['ultimo_ano_aplicado', 'ultimo_mes_aplicado'])
+
 
 
 """
