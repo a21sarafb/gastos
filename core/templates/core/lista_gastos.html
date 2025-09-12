@@ -1,83 +1,136 @@
-{% extends 'core/base.html' %}
+{% extends "core/base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="container mt-4">
-    <h2>Panel de Gastos</h2>
-    <a href="{% url 'crear_gasto' %}" class="btn btn-primary mb-3">Nuevo Gasto</a>
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Balance Total</h5>
-                    <p class="card-text {% if balance >= 0 %}text-success{% else %}text-danger{% endif %} fs-4 fw-semibold">
-                        {{ balance|floatformat:2 }} €
-                    </p>
-                </div>
+<div class="container py-3">
+
+  <!-- Filtros (sticky en mobile) -->
+  <div class="position-sticky top-0 bg-body z-3 py-2 mb-3 border-bottom" style="--bs-bg-opacity:.97">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-12">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Buscar descripción, categoría, fondo...">
+        </div>
+      </div>
+      <div class="col-6">
+        <label class="form-label small mb-1">Categoría</label>
+        <select name="cat" class="form-select">
+          <option value="">Todas</option>
+          {% for c in categorias %}
+            <option value="{{ c.id }}" {% if c.id|stringformat:"s" == cat %}selected{% endif %}>{{ c.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label small mb-1">Fondo</label>
+        <select name="fondo" class="form-select">
+          <option value="">Todos</option>
+          {% for f in fondos %}
+            <option value="{{ f.id }}" {% if f.id|stringformat:"s" == fondo %}selected{% endif %}>{{ f.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label small mb-1">Año</label>
+        <select name="year" class="form-select">
+          <option value="">—</option>
+          {% for y in years %}
+            <option value="{{ y }}" {% if y|stringformat:"s" == year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label small mb-1">Mes</label>
+        <select name="month" class="form-select">
+          <option value="">—</option>
+          {% for mnum, mname in months %}
+            <option value="{{ mnum }}" {% if mnum|stringformat:"s" == month %}selected{% endif %}>{{ mname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label small mb-1">Orden</label>
+        <div class="btn-group w-100">
+          <button name="order" value="fecha_desc" class="btn btn-outline-secondary {% if order == 'fecha_desc' %}active{% endif %}">
+            <i class="bi bi-calendar3"></i> Recientes
+          </button>
+          <button name="order" value="importe_desc" class="btn btn-outline-secondary {% if order == 'importe_desc' %}active{% endif %}">
+            <i class="bi bi-sort-numeric-down"></i> Importe ↓
+          </button>
+          <button name="order" value="importe_asc" class="btn btn-outline-secondary {% if order == 'importe_asc' %}active{% endif %}">
+            <i class="bi bi-sort-numeric-up"></i> Importe ↑
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Resumen -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Gastos</h5>
+    <span class="badge text-bg-light">Total página: <strong>{{ total_pagina }} €</strong></span>
+  </div>
+
+  <!-- Listado en cards -->
+  <div class="row g-3">
+    {% for g in gastos %}
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-body d-flex align-items-start justify-content-between gap-3">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge text-bg-secondary">{{ g.categoria.nombre }}</span>
+                {% if g.fondo %}<span class="badge text-bg-info">{{ g.fondo.nombre }}</span>{% endif %}
+              </div>
+              <h6 class="mt-2 mb-1">{{ g.descripcion }}</h6>
+              <div class="text-muted small">
+                {{ g.fecha|date:"d/m/Y" }}
+                {% if g.pagado_por %} • pagó: {{ g.pagado_por.username }}{% endif %}
+              </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Por Cobrar</h5>
-                    <p class="card-text text-success fs-4 fw-semibold">{{ por_cobrar|floatformat:2 }} €</p>
-                </div>
+            <div class="text-end">
+              <div class="fs-5 {% if g.monto_total < 0 %}text-success{% else %}text-danger{% endif %}">
+                {% if g.monto_total > 0 %}-{% endif %}{{ g.monto_total }} €
+              </div>
+              <div class="mt-2 btn-group">
+                <a href="{% url 'editar_gasto' g.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'ver_gasto' g.id %}" class="btn btn-sm btn-outline-secondary" title="Ver">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{% url 'borrar_gasto' g.id %}" class="btn btn-sm btn-outline-danger" title="Borrar">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
             </div>
+          </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Deuda Total</h5>
-                    <p class="card-text text-danger fs-4 fw-semibold">{{ deuda_total|floatformat:2 }} €</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <h3>Gastos Pagados</h3>
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Descripción</th>
-                        <th>Total</th>
-                        <th>Por Cobrar (37%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for gasto in gastos_pagados %}
-                    <tr>
-                        <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
-                        <td>{{ gasto.descripcion }}</td>
-                        <td>{{ gasto.monto_total }} €</td>
-                        <td>{{ gasto.deuda_calculada|floatformat:2 }} €</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="col-md-6">
-            <h3>Gastos Compartidos</h3>
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Descripción</th>
-                        <th>Total</th>
-                        <th>Mi Deuda (37%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for gasto in gastos_compartidos %}
-                    <tr>
-                        <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
-                        <td>{{ gasto.descripcion }}</td>
-                        <td>{{ gasto.monto_total }} €</td>
-                        <td>{{ gasto.deuda_calculada|floatformat:2 }} €</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="alert alert-light border">No hay gastos con los filtros actuales.</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Paginación -->
+  {% if gastos.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+      <ul class="pagination justify-content-between">
+        <li class="page-item {% if not gastos.has_previous %}disabled{% endif %}">
+          <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if cat %}cat={{ cat }}&{% endif %}{% if fondo %}fondo={{ fondo }}&{% endif %}{% if year %}year={{ year }}&{% endif %}{% if month %}month={{ month }}&{% endif %}order={{ order }}&page={{ gastos.previous_page_number }}">← Anterior</a>
+        </li>
+        <li class="page-item disabled">
+          <span class="page-link">Página {{ gastos.number }} / {{ gastos.paginator.num_pages }}</span>
+        </li>
+        <li class="page-item {% if not gastos.has_next %}disabled{% endif %}">
+          <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if cat %}cat={{ cat }}&{% endif %}{% if fondo %}fondo={{ fondo }}&{% endif %}{% if year %}year={{ year }}&{% endif %}{% if month %}month={{ month }}&{% endif %}order={{ order }}&page={{ gastos.next_page_number }}">Siguiente →</a>
+        </li>
+      </ul>
+    </nav>
+  {% endif %}
+
 </div>
 {% endblock %}

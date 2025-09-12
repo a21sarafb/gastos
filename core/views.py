@@ -15,6 +15,10 @@ from django.db.models.functions import TruncMonth
 
 from django.db import transaction
 
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.utils.timezone import now
+
 
 def aplicar_gastos_recurrentes_y_objetivos():
     hoy = datetime.date.today()
@@ -132,9 +136,75 @@ def actualizar_fondos_mensuales() -> None:
 
 @login_required
 def lista_gastos(request):
-    """Muestra un listado de gastos pagados por el usuario autenticado."""
-    gastos = Gasto.objects.filter(pagado_por=request.user).order_by('-fecha')
-    return render(request, 'core/lista_gastos.html', {'gastos': gastos})
+    gastos = Gasto.objects.select_related('categoria','fondo','pagado_por')
+
+    # filtros por búsqueda, categoría, fondo y fechas
+    q      = request.GET.get('q','').strip()
+    cat_id = request.GET.get('cat')
+    fondo_id = request.GET.get('fondo')
+    year   = request.GET.get('year')
+    month  = request.GET.get('month')
+    order  = request.GET.get('order','fecha_desc')
+
+    if q:
+        gastos = gastos.filter(
+            Q(descripcion__icontains=q) |
+            Q(categoria__nombre__icontains=q) |
+            Q(fondo__nombre__icontains=q) |
+            Q(pagado_por__username__icontains=q)
+        )
+    if cat_id:
+        gastos = gastos.filter(categoria_id=cat_id)
+    if fondo_id:
+        gastos = gastos.filter(fondo_id=fondo_id)
+    if year and month:
+        gastos = gastos.filter(fecha__year=year, fecha__month=month)
+    elif year:
+        gastos = gastos.filter(fecha__year=year)
+
+    # ordenación
+    if order == 'importe_desc':
+        gastos = gastos.order_by('-monto_total','-fecha','-id')
+    elif order == 'importe_asc':
+        gastos = gastos.order_by('monto_total','-fecha','-id')
+    else:
+        gastos = gastos.order_by('-fecha','-id')
+
+    # paginación (12 tarjetas por página)
+    paginator  = Paginator(gastos, 12)
+    page_number = request.GET.get('page',1)
+    gastos_page = paginator.get_page(page_number)
+
+    # selectores para los filtros
+    categorias = Categoria.objects.order_by('nombre')
+    fondos     = FondoComun.objects.order_by('nombre')
+    today      = now().date()
+    years  = list(range(today.year, today.year - 5, -1))
+    months = [
+        (1, 'Enero'), (2, 'Febrero'), (3, 'Marzo'), (4, 'Abril'),
+        (5, 'Mayo'), (6, 'Junio'), (7, 'Julio'), (8, 'Agosto'),
+        (9, 'Septiembre'), (10, 'Octubre'), (11, 'Noviembre'), (12, 'Diciembre')
+    ]
+
+    # total de la página (opcional)
+    total_pagina = sum((g.monto_total for g in gastos_page.object_list), Decimal('0.00'))
+
+    context = {
+        'gastos': gastos_page,
+        'categorias': categorias,
+        'fondos': fondos,
+        'total_pagina': total_pagina,
+        'q': q,
+        'cat': cat_id,
+        'fondo': fondo_id,
+        'year': year,
+        'month': month,
+        'order': order,
+        'years': years,
+        'months': months,
+    }
+    return render(request, 'core/lista_gastos.html', context)
+
 
 
 @login_required
