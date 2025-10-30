@@ -1,13 +1,13 @@
-{% extends 'core/base.html' %} {% block content %}
+
+{% extends 'core/base.html' %}
+{% block content %}
 <div class="container mt-4 fade-in">
   <div class="card p-3 mb-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
       <h2 class="h4 mb-0">Panel de Gastos - {{ usuario_actual }}</h2>
-      <a href="{% url 'crear_gasto' %}" class="btn btn-primary btn-sm"
-        >Nuevo Gasto</a
-      >
+      <a href="{% url 'crear_gasto' %}" class="btn btn-primary btn-sm">Nuevo Gasto</a>
     </div>
-<!-- {## Mostrar balance entre los dos usuarios 
+     <!-- {## Mostrar balance entre los dos usuarios 
     <div class="row mt-4">
         <div class="col-12 col-md-6">
             <div class="card">
@@ -30,6 +30,31 @@
         </div>
     </div>
 ##} -->
+<form method="get" class="row gy-2 gx-3 mb-4 align-items-end">
+    <div class="col-12 col-md-4">
+      <label for="cat" class="form-label">Categoría</label>
+        <select name="cat" class="form-select" id="cat">
+            <option value="">Todas</option>
+            {% for codigo, nombre in categorias %}
+                <option value="{{ codigo }}" {% if codigo|stringformat:'s' == cat %}selected{% endif %}>
+                    {{ nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label for="month" class="form-label">Mes</label>
+        <select id="month" name="month" class="form-select">
+            <option value="">Todos</option>
+            {% for m, nombre_mes in months %}
+                <option value="{{ m }}" {% if month|stringformat:'s' == m|stringformat:'s' %}selected{% endif %}>{{ nombre_mes }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-12 col-md-2">
+      <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+  </form>
     <div class="table-container mt-3">
       <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -59,12 +84,7 @@
               <td data-label="Categoría">
                 <div class="d-block d-md-none label">Categoría</div>
                 <div class="value">
-                  <span
-                    class="row-badge small text-muted px-2 py-1"
-                    style="background: rgba(0, 0, 0, 0.03)"
-                  >
-                    {{ gasto.categoria }}
-                  </span>
+                  <span class="row-badge">{{ gasto.categoria }}</span>
                 </div>
               </td>
 
@@ -85,9 +105,7 @@
             </tr>
             {% empty %}
             <tr>
-              <td colspan="6" class="text-center small-muted py-4">
-                No hay gastos registrados
-              </td>
+              <td colspan="6" class="text-center small-muted py-4">No hay gastos registrados</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -95,22 +113,13 @@
       </div>
     </div>
 
-    <div class="mt-3 small-muted d-md-none">
-      Desliza cada tarjeta para ver detalle. Toca una fila para acciones.
-    </div>
+    <div class="mt-3 small-muted d-md-none">Desliza cada tarjeta para ver detalle. Toca una fila para acciones.</div>
   </div>
   <script>
     // mejora UX: submit automático solo en móviles si se usan selects
-    const cat = document.getElementById("cat"),
-      month = document.getElementById("month");
-    if (cat)
-      cat.addEventListener("change", () =>
-        document.querySelector("form").submit()
-      );
-    if (month)
-      month.addEventListener("change", () =>
-        document.querySelector("form").submit()
-      );
+    const cat = document.getElementById('cat'), month = document.getElementById('month');
+    if (cat) cat.addEventListener('change', () => document.querySelector('form').submit());
+    if (month) month.addEventListener('change', () => document.querySelector('form').submit());
   </script>
 </div>
 {% endblock %}

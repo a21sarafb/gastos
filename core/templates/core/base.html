@@ -16,12 +16,13 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
     :root{
-      --pastel-1: #fbf8ff;   /* fondo general muy suave */
-      --pastel-2: #f7f3f9;   /* sección / cards */
+      --pastel-1: #e95aad;
+      --pastel-2: #c358f9;
       --muted: #6b6b6b;
-      --accent: #e9cfe8;     /* acento suave */
-      --table-row: rgba(245,242,247,0.8);
+      --accent: #e9cfe8;
+      --table-row: rgba(245,242,247,0.85);
       --border-soft: rgba(17,24,39,0.06);
+      --glass: rgba(255,255,255,0.6);
     }
 
     body{
@@ -29,13 +30,11 @@
       color: #222;
       font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
       padding-bottom: 4rem;
     }
 
     .container { max-width: 980px; }
 
-    /* cards y tabla suaves */
     .card {
       background: linear-gradient(180deg, var(--pastel-2), #ffffff);
       border: 1px solid var(--border-soft);
@@ -43,17 +42,9 @@
       box-shadow: 0 6px 20px rgba(17,24,39,0.03);
     }
 
-    .table-container {
-      background: transparent;
-      padding: .6rem;
-      border-radius: .75rem;
-    }
+    .table-container { background: transparent; padding: .6rem; border-radius: .75rem; }
 
-    .table {
-      background: transparent;
-      border-collapse: separate;
-      border-spacing: 0;
-    }
+    .table { background: transparent; border-collapse: separate; border-spacing: 0; }
 
     .table thead th {
       border-bottom: 1px solid rgba(17,24,39,0.06);
@@ -62,22 +53,16 @@
       background: transparent;
     }
 
-    .table tbody tr {
-      background: transparent;
-    }
-
-    /* filas ligeramente resaltadas al pasar el ratón (desktop) */
     @media (min-width: 768px){
       .table tbody tr:hover {
-        background: var(--table-row);
+        background: rgba(245,242,247,0.9);
         transition: background-color .18s ease;
       }
     }
 
-    /* --- versión móvil: convertir filas en tarjetas profesionales --- */
+    /* Móvil: filas -> tarjetas */
     @media (max-width: 767.98px){
       .table thead { display: none; }
-      .table { width: 100%; }
       .table tbody { display:block; padding:0; }
       .table tbody tr {
         display: block;
@@ -94,28 +79,40 @@
         padding: .35rem 0;
         border-bottom: none;
       }
-      .table tbody tr td .label {
-        font-size: .82rem;
-        color: var(--muted);
-      }
-      .table tbody tr td .value {
-        font-weight:600;
-        color:#222;
-      }
-      /* pequeño badge de categoría en la esquina */
-      .row-badge { font-size:.72rem; padding:.18rem .5rem; border-radius:999px; }
+      .table tbody tr td .label { font-size:.82rem; color: var(--muted); }
+      .table tbody tr td .value { font-weight:600; color:#222; }
     }
 
-    /* colores pastel para categorías (bordes / badge) */
-    tr[data-categoria="Viajes"] { border-left: 4px solid rgba(255, 205, 86, 0.45); }
-    tr[data-categoria="Ocio"] { border-left: 4px solid rgba(255, 159, 243, 0.35); }
-    tr[data-categoria="Supermercado"] { border-left: 4px solid rgba(148, 219, 255, 0.45); }
-    tr[data-categoria="Gastos piso"] { border-left: 4px solid rgba(181, 230, 193, 0.45); }
-    tr[data-categoria="Otros"] { border-left: 4px solid rgba(206, 206, 214, 0.45); }
+    /* Coloreado sutil por categoría (bordes + tint) */
+    tr[data-categoria="Viajes"] {
+      border-left: 4px solid rgba(255, 205, 86, 0.35);
+      background-image: linear-gradient(90deg, rgba(255,205,86,0.03), transparent);
+    }
+    tr[data-categoria="Ocio"] {
+      border-left: 4px solid rgba(255, 159, 243, 0.24);
+      background-image: linear-gradient(90deg, rgba(255,159,243,0.03), transparent);
+    }
+    tr[data-categoria="Supermercado"] {
+      border-left: 4px solid rgba(148, 219, 255, 0.35);
+      background-image: linear-gradient(90deg, rgba(148,219,255,0.03), transparent);
+    }
+    tr[data-categoria="Gastos piso"] {
+      border-left: 4px solid rgba(181, 230, 193, 0.35);
+      background-image: linear-gradient(90deg, rgba(181,230,193,0.03), transparent);
+    }
+    tr[data-categoria="Otros"] {
+      border-left: 4px solid rgba(206, 206, 214, 0.35);
+      background-image: linear-gradient(90deg, rgba(206,206,214,0.02), transparent);
+    }
 
-    /* accesibilidad: suficiente contraste en texto */
+    /* Asegurar contraste en celdas con tint */
+    tr[data-categoria] td { background: transparent !important; }
+
+    .row-badge { font-size:.72rem; padding:.18rem .5rem; border-radius:999px; background: rgba(0,0,0,0.03); color:#333; }
     .small-muted { color: var(--muted); font-size:.9rem; }
     .btn { border-radius:.6rem; }
+    .fade-in { animation: fadeInUp .45s ease both; }
+    @keyframes fadeInUp { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
   </style>
 </head>
 
