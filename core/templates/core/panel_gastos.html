@@ -71,21 +71,23 @@
       <tbody>
         {% for gasto in gastos %}
         <tr class="fade-in" data-categoria="{{ gasto.categoria }}">
-          <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
-          <td>{{ gasto.descripcion }}</td>
-          <td>{{ gasto.categoria }}</td>
-          <td>{{ gasto.monto_total|floatformat:2 }} €</td>
-          <td>{{ gasto.parte_sara|floatformat:2 }} €</td>
-          <td>{{ gasto.parte_adri|floatformat:2 }} €</td>
+          <td data-label="Fecha"><span class="label d-md-none">Fecha</span><span class="value">{{ gasto.fecha|date:"d/m/Y" }}</span></td>
+          <td data-label="Descripción"><span class="label d-md-none">Descripción</span><span class="value">{{ gasto.descripcion }}</span></td>
+          <td data-label="Categoría"><span class="label d-md-none">Categoría</span><span class="value">{{ gasto.categoria }}</span></td>
+          <td data-label="Total"><span class="label d-md-none">Total</span><span class="value">{{ gasto.monto_total|floatformat:2 }} €</span></td>
+          <td data-label="Sara (63%)"><span class="label d-md-none">Sara</span><span class="value">{{ gasto.parte_sara|floatformat:2 }} €</span></td>
+          <td data-label="Adri (37%)"><span class="label d-md-none">Adri</span><span class="value">{{ gasto.parte_adri|floatformat:2 }} €</span></td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-
+  <div class="text-muted small d-md-none mt-2">Desliza para ver todos los datos. En escritorio se mantiene la tabla tradicional.</div>
   <script>
-    document.getElementById('cat').addEventListener('change', () => document.querySelector('form').submit());
-    document.getElementById('month').addEventListener('change', () => document.querySelector('form').submit());
+    // mejora UX: submit automático solo en móviles si se usan selects
+    const cat = document.getElementById('cat'), month = document.getElementById('month');
+    if (cat) cat.addEventListener('change', () => document.querySelector('form').submit());
+    if (month) month.addEventListener('change', () => document.querySelector('form').submit());
   </script>
 </div>
 {% endblock %}
