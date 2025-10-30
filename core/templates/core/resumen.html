@@ -1,50 +1,39 @@
 {% extends 'core/base.html' %} 
-{# Plantilla para mostrar gráficos estadísticos
-de los gastos. Se utilizan dos gráficos de Chart.js: uno de tipo pastel para
-mostrar el reparto de gastos por categoría en el mes actual y otro de tipo barra
-para mostrar la evolución de los gastos totales en los últimos seis meses. Los
-datos se reciben desde la vista ``resumen_finanzas`` en formato JSON. #} 
 {% block content %}
-<div class="container mt-4">
-  <h2>Resumen de Finanzas</h2>
-  <div class="row mt-4">
-    <div class="col-md-6 mb-4">
+<div class="container mt-4 fade-in">
+  <h2 class="mb-4"><i class="bi bi-graph-up-arrow"></i> Resumen de Finanzas</h2>
+
+  <div class="row g-4">
+    <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Gastos por categoría (mes actual)</h4>
+          <h5 class="card-title"><i class="bi bi-pie-chart"></i> Gastos por categoría (mes actual)</h5>
           <canvas id="graficoCategorias" height="200"></canvas>
         </div>
       </div>
     </div>
-    <div class="col-md-6 mb-4">
+    <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Gastos totales últimos meses</h4>
+          <h5 class="card-title"><i class="bi bi-bar-chart-line"></i> Gastos totales últimos meses</h5>
           <canvas id="graficoMeses" height="200"></canvas>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Nuevo gráfico de supermercados -->
-  <div class="row mt-4">
-    <div class="col-md-6 mb-4">
+    <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Gastos en supermercados (mes actual)</h4>
+          <h5 class="card-title"><i class="bi bi-basket"></i> Supermercados (mes actual)</h5>
           <canvas id="graficoSupermercados" height="200"></canvas>
         </div>
       </div>
     </div>
-  </div>
-  <!-- Tabla de totales por categoría -->
-  <div class="row mt-4">
-    <div class="col-md-12">
+    <div class="col-md-6">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Totales por categoría (mes actual)</h4>
-          <table class="table">
-            <thead>
+          <h5 class="card-title"><i class="bi bi-table"></i> Totales por categoría</h5>
+          <table class="table table-hover table-bordered align-middle">
+            <thead class="table-light">
               <tr>
                 <th>Categoría</th>
                 <th>Total (€)</th>
@@ -57,6 +46,10 @@ datos se reciben desde la vista ``resumen_finanzas`` en formato JSON. #}
                 <td>{{ item.total }}</td>
               </tr>
               {% endfor %}
+              <tr class="table-info">
+                <td><strong>Total</strong></td>
+                <td><strong>{{ total_general }}</strong></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -64,99 +57,81 @@ datos se reciben desde la vista ``resumen_finanzas`` en formato JSON. #}
     </div>
   </div>
 </div>
-{% endblock %} {% block extra_js %}
-<!-- Cargamos Chart.js desde CDN -->
+{% endblock %} 
+
+{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Datos de categorías y totales por categoría
-  const labelsCategoria = {{ labels_categoria|safe }};
-  const dataCategoria = {{ data_categoria|safe }};
-  const ctxCat = document.getElementById('graficoCategorias').getContext('2d');
-  new Chart(ctxCat, {
-      type: 'pie',
-      data: {
-          labels: labelsCategoria,
-          datasets: [{
-              data: dataCategoria,
-              backgroundColor: [
-                  '#FFCDD2', // Supermercado - rojo pastel
-                  '#FFE0B2', // Viajes - naranja pastel
-                  '#C8E6C9', // Gastos piso - verde pastel
-                  '#BBDEFB', // Compras piso - azul pastel
-                  '#E1BEE7', // Ocio - púrpura pastel
-                  '#F8BBD0', // Otros - rosa pastel
-              ],
-              borderWidth: 1,
-          }],
-      },
-      options: {
-          responsive: true,
-          plugins: {
-              legend: {
-                  position: 'bottom',
-              },
-          },
-      },
+  Chart.defaults.font.family = 'Inter';
+  Chart.defaults.color = '#444';
+
+  const pieColors = ['#FFCDD2', '#FFE0B2', '#C8E6C9', '#BBDEFB', '#E1BEE7', '#F8BBD0'];
+
+  new Chart(document.getElementById('graficoCategorias'), {
+    type: 'pie',
+    data: {
+      labels: {{ labels_categoria|safe }},
+      datasets: [{
+        data: {{ data_categoria|safe }},
+        backgroundColor: pieColors,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 800, easing: 'easeOutQuart' },
+      plugins: { legend: { position: 'bottom' } }
+    }
   });
 
-  // Datos de meses y totales por mes
-  const labelsMes = {{ labels_mes|safe }};
-  const dataMes = {{ data_mes|safe }};
-  const ctxMes = document.getElementById('graficoMeses').getContext('2d');
-  new Chart(ctxMes, {
-      type: 'bar',
-      data: {
-          labels: labelsMes,
-          datasets: [{
-              label: 'Total Gastos',
-              data: dataMes,
-              backgroundColor: '#F8BBD0', // barra pastel rosa
-              borderColor: '#F48FB1', // borde rosa más intenso
-              borderWidth: 1,
-          }],
+  new Chart(document.getElementById('graficoMeses'), {
+    type: 'bar',
+    data: {
+      labels: {{ labels_mes|safe }},
+      datasets: [{
+        label: 'Total Gastos',
+        data: {{ data_mes|safe }},
+        backgroundColor: '#F8BBD0',
+        borderColor: '#F48FB1',
+        borderWidth: 1,
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: {
+        duration: 1000,
+        easing: 'easeOutQuart',
+        delay: (ctx) => ctx.dataIndex * 100
       },
-      options: {
-          responsive: true,
-          scales: {
-              y: {
-                  beginAtZero: true,
-              },
-          },
-          plugins: {
-              legend: {
-                  display: false,
-              },
-          },
-      },
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: { grid: { display: false } }
+      }
+    }
   });
 
-  // --- Gráfico de supermercados ---
   const labelsSuper = {{ labels_super|safe }};
   const dataSuper = {{ data_super|safe }};
-  const ctxSuper = document.getElementById('graficoSupermercados').getContext('2d');
-  // Paleta de colores para las tiendas: se reutilizan en bucle si hay más
-  const coloresSuper = [
-    '#80DEEA', '#FFE082', '#A5D6A7', '#FFAB91', '#CE93D8', '#FFCDD2', '#F0F4C3', '#B39DDB'
-  ];
-  const backgroundSuper = labelsSuper.map((_, idx) => coloresSuper[idx % coloresSuper.length]);
-  new Chart(ctxSuper, {
-      type: 'pie',
-      data: {
-          labels: labelsSuper,
-          datasets: [{
-              data: dataSuper,
-              backgroundColor: backgroundSuper,
-              borderWidth: 1,
-          }],
-      },
-      options: {
-          responsive: true,
-          plugins: {
-              legend: {
-                  position: 'bottom',
-              },
-          },
-      },
+  const colorsSuper = ['#80DEEA', '#FFE082', '#A5D6A7', '#FFAB91', '#CE93D8', '#FFCDD2', '#F0F4C3', '#B39DDB'];
+  const superColors = labelsSuper.map((_, i) => colorsSuper[i % colorsSuper.length]);
+
+  new Chart(document.getElementById('graficoSupermercados'), {
+    type: 'pie',
+    data: {
+      labels: labelsSuper,
+      datasets: [{ data: dataSuper, backgroundColor: superColors, borderWidth: 1 }]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 800, easing: 'easeOutQuart' },
+      plugins: { legend: { position: 'bottom' } }
+    }
   });
 </script>
 {% endblock %}

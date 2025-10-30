@@ -615,8 +615,7 @@ def resumen_finanzas(request):
         'labels_mes': json.dumps(labels_mes),
         'data_mes': json.dumps(data_mes),
         'tabla_categoria': tabla_categoria,
-        'total_general': total_general,  # para la tabla en la plantilla
-        # Datos para el gráfico de supermercados
+        'total_general': total_general,
         'labels_super': json.dumps(labels_super),
         'data_super': json.dumps(data_super),
     }
