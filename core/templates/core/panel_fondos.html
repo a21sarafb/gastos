@@ -10,45 +10,56 @@
     petición AJAX.
 #}
 
-
 {% block extra_js %}
 <script>
-    function editarFondo(id, nombre, saldo) {
+    function normalizeSaldoString(s) {
+    if (s === null || s === undefined) return '';
+    // eliminar espacios, símbolo €, y separadores de miles; convertir coma a punto
+    return String(s).trim().replace(/\s/g,'').replace(/€/g,'').replace(/\./g,'').replace(',', '.');
+    }
+
+    function editarFondo(id, nombre, saldoStr) {
         document.getElementById('fondo-id').value = id;
-        document.getElementById('fondo-nombre').textContent = nombre;
-        document.getElementById('nuevo-saldo').value = saldo;
-        // Normaliza el saldo por si viene con coma como separador decimal ("265,00"),
-        // ya que <input type="number"> espera un punto.
-        const saldoSanitizado = String(saldo).replace(',', '.');
-        document.getElementById('nuevo-saldo').value = saldoSanitizado;
-        const modal = new bootstrap.Modal(document.getElementById('editarFondoModal'));
+        document.getElementById('fondo-nombre').textContent = nombre || '';
+        const input = document.getElementById('nuevo-saldo');
+        const normalized = normalizeSaldoString(saldoStr);
+        const parsed = parseFloat(normalized);
+        input.value = isNaN(parsed) ? '' : parsed.toFixed(2);
+        const modalEl = document.getElementById('editarFondoModal');
+        // asegurar que el modal se crea y muestra correctamente
+        const modal = new bootstrap.Modal(modalEl, {backdrop: true, keyboard: true});
         modal.show();
     }
 
     function guardarSaldo() {
         const fondoId = document.getElementById('fondo-id').value;
         const nuevoSaldo = document.getElementById('nuevo-saldo').value;
+        if (!fondoId) return alert('Fondo no seleccionado');
+        // obtener CSRF desde meta
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
         fetch(`/fondos/actualizar/${fondoId}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-CSRFToken': csrf
             },
-            body: `saldo=${nuevoSaldo}`,
+            body: `saldo=${encodeURIComponent(nuevoSaldo)}`
         })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
-                    document.getElementById(`saldo-${fondoId}`).textContent = `${data.nuevo_saldo.toFixed(2)} €`;
-                    bootstrap.Modal.getInstance(document.getElementById('editarFondoModal')).hide();
-                } else {
-                    alert('Error al actualizar el saldo');
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('Error al actualizar el saldo');
-            });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const display = document.getElementById(`saldo-${fondoId}`);
+                if (display) display.textContent = Number(data.nuevo_saldo).toFixed(2) + ' €';
+                bootstrap.Modal.getInstance(document.getElementById('editarFondoModal'))?.hide();
+            } else {
+                alert('Error al actualizar el saldo: ' + (data.error || 'desconocido'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error al actualizar el saldo');
+        });
     }
 </script>
 {% endblock %}
