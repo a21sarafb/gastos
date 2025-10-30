@@ -1,43 +1,6 @@
 {% extends 'core/base.html' %}
 {% load custom_filters %}
 
-{% block extra_js %}
-<script>
-function editarFondo(id, nombre, saldo) {
-    document.getElementById('fondo-id').value = id;
-    document.getElementById('fondo-nombre').textContent = nombre;
-    document.getElementById('nuevo-saldo').value = saldo;
-    new bootstrap.Modal(document.getElementById('editarFondoModal')).show();
-}
-
-function guardarSaldo() {
-    const fondoId = document.getElementById('fondo-id').value;
-    const nuevoSaldo = document.getElementById('nuevo-saldo').value;
-    fetch(`/fondos/actualizar/${fondoId}/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        },
-        body: `saldo=${nuevoSaldo}`,
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                document.getElementById(`saldo-${fondoId}`).textContent = `${data.nuevo_saldo.toFixed(2)} €`;
-                bootstrap.Modal.getInstance(document.getElementById('editarFondoModal')).hide();
-            } else {
-                alert('Error al actualizar el saldo');
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('Error al actualizar el saldo');
-        });
-}
-</script>
-{% endblock %}
-
 {% block content %}
 <div class="container mt-4 fade-in">
   <h2 class="mb-4"><i class="bi bi-piggy-bank"></i> Panel de Fondos Comunes</h2>
@@ -99,4 +62,41 @@ function guardarSaldo() {
     </div>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function editarFondo(id, nombre, saldo) {
+    document.getElementById('fondo-id').value = id;
+    document.getElementById('fondo-nombre').textContent = nombre;
+    document.getElementById('nuevo-saldo').value = saldo;
+    const modal = new bootstrap.Modal(document.getElementById('editarFondoModal'));
+    modal.show();
+}
+
+function guardarSaldo() {
+    const fondoId = document.getElementById('fondo-id').value;
+    const nuevoSaldo = document.getElementById('nuevo-saldo').value;
+    fetch(`/fondos/actualizar/${fondoId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: `saldo=${nuevoSaldo}`,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`saldo-${fondoId}`).textContent = `${data.nuevo_saldo.toFixed(2)} €`;
+            bootstrap.Modal.getInstance(document.getElementById('editarFondoModal')).hide();
+        } else {
+            alert('Error al actualizar el saldo');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar el saldo');
+    });
+}
+</script>
 {% endblock %}
