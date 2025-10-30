@@ -18,38 +18,43 @@
     :root{
       --pastel-1: #f9a1d4;
       --pastel-2: #edcdfd;
-      --muted: #1d1d1d;
+      --muted: #181818;
       --accent: #e9cfe8;
       --table-row: rgba(245,242,247,0.85);
       --border-soft: rgba(17,24,39,0.06);
-      --glass: rgba(255,255,255,0.6);
+      --glass: rgba(16, 15, 15, 0.6);
     }
 
     body {
         --_gradient-blend-mode: normal;
         --_gradient-blur: 0px;
 
-        background: radial-gradient(at 86.2% 49.1%, #d22f89 0px, transparent 50%),
-                    radial-gradient(at 1% 63%, #d22f37 0px, transparent 50%),
-                    radial-gradient(at 29% 27.3%, #d2782f 0px, transparent 50%),
-                    radial-gradient(at 61% 63%, #2fd278 0px, transparent 50%),
-                    radial-gradient(at 71% 7%, #2f89d2 0px, transparent 50%) #F7F7F7;
+        background: radial-gradient(at 74% 88%, #D52D53 0px, transparent 50%), 
+                    radial-gradient(at 47% 50%, #EF769D 0px, transparent 50%), 
+                    radial-gradient(at 44% 87%, #F5A9B8 0px, transparent 50%), 
+                    radial-gradient(at 44% 68%, #FFFFFF 0px, transparent 50%), 
+                    radial-gradient(at 30% 21%, #FF9B55 0px, transparent 50%), 
+                    radial-gradient(at 2% 68%, #FF6600 0px, transparent 50%), 
+                    radial-gradient(at 88% 58%, #A30262 0px, transparent 50%) #FFFFFF;;
         mix-blend-mode: var(--_gradient-blend-mode);
-
         background-attachment: fixed;
         background-size: cover;
-        color: #222;
+        color: #181818;
         font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
         -webkit-font-smoothing: antialiased;
         padding-bottom: 4rem;
+        
     }
 
-
+    .frosted-backdrop {
+        backdrop-filter: blur(var(--_gradient-blur)) contrast(100%) brightness(100%);
+        -webkit-backdrop-filter: blur(var(--_gradient-blur)) contrast(100%) brightness(100%);
+    }
 
     .container { max-width: 980px; }
 
     .card {
-        background: rgba(243, 243, 243, 0.07);
+        background: rgba(15, 15, 15, 0.07);
         border-radius: .8rem;
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(4.4px);
@@ -175,7 +180,7 @@
   </div>
   {% endif %}
 
-  <main class="container my-4 ">
+  <main class="container my-4 frosted-backdrop ">
     {% csrf_token %}
     {% block content %}{% endblock %}
   </main>
