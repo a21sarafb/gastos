@@ -153,14 +153,14 @@
   {% if messages %}
   <div class="container mt-3">
     {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} fade-in">
+    <div class="alert alert-{{ message.tags }} ">
       {{ message }}
     </div>
     {% endfor %}
   </div>
   {% endif %}
 
-  <main class="container my-4 fade-in">
+  <main class="container my-4 ">
     {% csrf_token %}
     {% block content %}{% endblock %}
   </main>
