@@ -1,9 +1,10 @@
-{% extends 'core/base.html' %} {# Plantilla para mostrar gráficos estadísticos
+{% extends 'core/base.html' %} 
+{# Plantilla para mostrar gráficos estadísticos
 de los gastos. Se utilizan dos gráficos de Chart.js: uno de tipo pastel para
 mostrar el reparto de gastos por categoría en el mes actual y otro de tipo barra
 para mostrar la evolución de los gastos totales en los últimos seis meses. Los
-datos se reciben desde la vista ``resumen_finanzas`` en formato JSON. #} {%
-block content %}
+datos se reciben desde la vista ``resumen_finanzas`` en formato JSON. #} 
+{% block content %}
 <div class="container mt-4">
   <h2>Resumen de Finanzas</h2>
   <div class="row mt-4">
