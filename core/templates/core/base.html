@@ -26,13 +26,24 @@
     }
 
     body {
-        background: url('https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGhqM3NjbTRvZW9oYzBkOXZzcGU1ZXloMzU2NmRoNmRzZXFhZ2hicCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4QFdKe8O6lVO12HPsT/giphy.gif') no-repeat center center fixed;
+        --_gradient-blend-mode: normal;
+        --_gradient-blur: 0px;
+
+        background: radial-gradient(at 86.2% 49.1%, #d22f89 0px, transparent 50%),
+                    radial-gradient(at 1% 63%, #d22f37 0px, transparent 50%),
+                    radial-gradient(at 29% 27.3%, #d2782f 0px, transparent 50%),
+                    radial-gradient(at 61% 63%, #2fd278 0px, transparent 50%),
+                    radial-gradient(at 71% 7%, #2f89d2 0px, transparent 50%) #F7F7F7;
+        mix-blend-mode: var(--_gradient-blend-mode);
+
+        background-attachment: fixed;
         background-size: cover;
         color: #222;
         font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
         -webkit-font-smoothing: antialiased;
         padding-bottom: 4rem;
     }
+
 
 
     .container { max-width: 980px; }
