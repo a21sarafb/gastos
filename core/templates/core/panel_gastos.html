@@ -33,10 +33,12 @@
   <form method="get" class="row gy-2 gx-3 mb-4 align-items-end">
     <div class="col-12 col-md-4">
       <label for="cat" class="form-label">Categoría</label>
-        <select id="cat" name="cat" class="form-select">
+        <select name="cat" class="form-select" id="cat">
             <option value="">Todas</option>
             {% for codigo, nombre in categorias %}
-                <option value="{{ codigo }}" {% if cat == codigo %}selected{% endif %}>{{ nombre }}</option>
+                <option value="{{ codigo }}" {% if codigo|stringformat:'s' == cat %}selected{% endif %}>
+                    {{ nombre }}
+                </option>
             {% endfor %}
         </select>
     </div>

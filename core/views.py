@@ -401,7 +401,18 @@ def panel_gastos(request):
 
     # Filtrar por categoría
     if cat_filter:
-        todos_los_gastos = todos_los_gastos.filter(categoria=cat_filter)
+        # Algunos registros antiguos almacenan el nombre legible en lugar del código,
+        # por lo que comprobamos ambos valores. Primero intentamos obtener el
+        # nombre a partir del mapeo de códigos; si existe, filtramos por el
+        # código o por el nombre (ignorando mayúsculas/minúsculas). Si no existe
+        # en el mapeo, filtramos solo por el valor recibido.
+        nombre_cat = CATEGORIA_NOMBRES.get(cat_filter)
+        if nombre_cat:
+            todos_los_gastos = todos_los_gastos.filter(
+                Q(categoria=cat_filter) | Q(categoria__iexact=nombre_cat)
+            )
+        else:
+            todos_los_gastos = todos_los_gastos.filter(categoria=cat_filter)
 
     # Filtrar por mes (si se seleccionó)
     if month_filter:

@@ -1,76 +1,23 @@
 {% extends 'core/base.html' %}
 {% load custom_filters %}
 
-{% block content %}
-<div class="container mt-4 fade-in">
-  <h2 class="mb-4"><i class="bi bi-piggy-bank"></i> Panel de Fondos Comunes</h2>
+{#
+    Plantilla para el panel de fondos comunes.
 
-  <div class="row mb-4">
-    <div class="col-md-4">
-      <div class="card text-center shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title text-muted">Saldo total</h5>
-          <p class="card-text fs-2 fw-bold text-primary">{{ saldo_total|floatformat:2 }} €</p>
-        </div>
-      </div>
-    </div>
-  </div>
+    Se muestran todas las cuentas compartidas (fondos) junto con su saldo,
+    aportación mensual prevista y la última fecha de actualización. Además
+    se incluye un botón para editar manualmente el saldo mediante una
+    petición AJAX.
+#}
 
-  <div class="row">
-    {% for fondo in fondos %}
-    <div class="col-md-6 mb-4">
-      <div class="card h-100 shadow-sm fade-in">
-        <div class="card-body d-flex flex-column justify-content-between">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="card-title mb-0"><i class="bi bi-wallet2"></i> {{ fondo.get_tipo_display }}</h5>
-            <button class="btn btn-sm btn-outline-primary" onclick="editarFondo('{{ fondo.id }}', '{{ fondo.get_tipo_display }}', '{{ fondo.saldo }}')">
-              <i class="bi bi-pencil"></i> Editar
-            </button>
-          </div>
-          <h3 class="my-2 {% if fondo.saldo < 0 %}text-danger{% else %}text-success{% endif %}" id="saldo-{{ fondo.id }}">
-            {{ fondo.saldo|floatformat:2 }} €
-          </h3>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-</div>
 
-<div class="modal fade" id="editarFondoModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Saldo</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="fondo-id">
-        <div class="mb-3">
-          <label class="form-label">Fondo:</label>
-          <div id="fondo-nombre" class="form-text fw-semibold"></div>
-        </div>
-        <div class="mb-3">
-          <label for="nuevo-saldo" class="form-label">Nuevo saldo:</label>
-          <input type="number" class="form-control" id="nuevo-saldo" step="0.01">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" onclick="guardarSaldo()">Guardar</button>
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock %}
 {% block extra_js %}
 <script>
 function editarFondo(id, nombre, saldo) {
     document.getElementById('fondo-id').value = id;
     document.getElementById('fondo-nombre').textContent = nombre;
     document.getElementById('nuevo-saldo').value = saldo;
-    const modal = new bootstrap.Modal(document.getElementById('editarFondoModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('editarFondoModal')).show();
 }
 
 function guardarSaldo() {
@@ -84,19 +31,81 @@ function guardarSaldo() {
         },
         body: `saldo=${nuevoSaldo}`,
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById(`saldo-${fondoId}`).textContent = `${data.nuevo_saldo.toFixed(2)} €`;
-            bootstrap.Modal.getInstance(document.getElementById('editarFondoModal')).hide();
-        } else {
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.success) {
+                document.getElementById(`saldo-${fondoId}`).textContent = `${data.nuevo_saldo.toFixed(2)} €`;
+                bootstrap.Modal.getInstance(document.getElementById('editarFondoModal')).hide();
+            } else {
+                alert('Error al actualizar el saldo');
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
             alert('Error al actualizar el saldo');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al actualizar el saldo');
-    });
+        });
 }
 </script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 fade-in">
+  <h2 class="mb-4"><i class="bi bi-piggy-bank"></i> Panel de Fondos Comunes</h2>
+    <!-- Tarjeta con el saldo total en la cuenta conjunta -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Saldo total</h5>
+                    <p class="card-text fs-2 fw-bold text-primary">{{ saldo_total|floatformat:2 }} €</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        {% for fondo in fondos %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm fade-in">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title mb-0"><i class="bi bi-wallet2"></i> {{ fondo.get_tipo_display }}</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="editarFondo('{{ fondo.id }}', '{{ fondo.get_tipo_display }}' , '{{ fondo.saldo }}')">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                    </div>
+                    <h3 class="my-2 {% if fondo.saldo < 0 %}text-danger{% else %}text-success{% endif %}" id="saldo-{{ fondo.id }}"> {{ fondo.saldo|floatformat:2 }} € </h3>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# Modal para editar saldo de un fondo. Se reutiliza el código existente, ajustando identificadores. #}
+<div class="modal fade" id="editarFondoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil-square"></i>Editar Saldo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="fondo-id">
+                <div class="mb-3">
+                    <label class="form-label">Fondo:</label>
+                    <span id="fondo-nombre" class="form-text fw-semibold"></span>
+                </div>
+                <div class="mb-3">
+                    <label for="nuevo-saldo" class="form-label">Nuevo saldo:</label>
+                    <input type="number" class="form-control" id="nuevo-saldo" step="0.01">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarSaldo()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
