@@ -33,21 +33,21 @@
   <form method="get" class="row gy-2 gx-3 mb-4 align-items-end">
     <div class="col-12 col-md-4">
       <label for="cat" class="form-label">Categoría</label>
-      <select id="cat" name="cat" class="form-select">
-        <option value="">Todas</option>
-        {% for codigo, nombre in categorias %}
-        <option value="{{ codigo }}" {% if cat == codigo %}selected{% endif %}>{{ nombre }}</option>
-        {% endfor %}
-      </select>
+        <select id="cat" name="cat" class="form-select">
+            <option value="">Todas</option>
+            {% for codigo, nombre in categorias %}
+                <option value="{{ codigo }}" {% if cat == codigo %}selected{% endif %}>{{ nombre }}</option>
+            {% endfor %}
+        </select>
     </div>
     <div class="col-6 col-md-3">
       <label for="month" class="form-label">Mes</label>
-      <select id="month" name="month" class="form-select">
-        <option value="">Todos</option>
-        {% for m, nombre_mes in months %}
-        <option value="{{ m }}" {% if month|stringformat:'s' == m|stringformat:'s' %}selected{% endif %}>{{ nombre_mes }}</option>
-        {% endfor %}
-      </select>
+        <select id="month" name="month" class="form-select">
+            <option value="">Todos</option>
+            {% for m, nombre_mes in months %}
+                <option value="{{ m }}" {% if month|stringformat:'s' == m|stringformat:'s' %}selected{% endif %}>{{ nombre_mes }}</option>
+            {% endfor %}
+        </select>
     </div>
     <div class="col-12 col-md-2">
       <button type="submit" class="btn btn-primary w-100">Filtrar</button>
