@@ -4,8 +4,9 @@
     <h2>Panel de Gastos - {{ usuario_actual }}</h2>
     <a href="{% url 'crear_gasto' %}" class="btn btn-primary mb-3">Nuevo Gasto</a>
 
+    {## Mostrar balance entre los dos usuarios 
     <div class="row mt-4">
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Balance con {{ otro_usuario.username }}</h5>
@@ -25,36 +26,78 @@
             </div>
         </div>
     </div>
+##}
+    
+
+    <h3 class="mt-4">Todos los Gastos</h3>
+
+    <!-- Formulario de filtros -->
+    <form method="get" class="mt-2">
+      <div class="row gy-2 gx-3">
+        <div class="col-12 col-md-4 col-lg-3">
+          <label for="cat" class="form-label">Categoría</label>
+          <select id="cat" name="cat" class="form-select">
+            <option value="">Todas</option>
+            {% for codigo, nombre in categorias %}
+            <option value="{{ codigo }}" {% if cat == codigo %}selected{% endif %}>{{ nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <label for="year" class="form-label">Año</label>
+          <select id="year" name="year" class="form-select">
+            <option value="">Todos</option>
+            {% for y in years %}
+            <option value="{{ y }}" {% if year|stringformat:'s' == y|stringformat:'s' %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <label for="month" class="form-label">Mes</label>
+          <select id="month" name="month" class="form-select">
+            <option value="">Todos</option>
+            {% for m, nombre_mes in months %}
+            <option value="{{ m }}" {% if month|stringformat:'s' == m|stringformat:'s' %}selected{% endif %}>{{ nombre_mes }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3 col-lg-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+      </div>
+    </form>
 
     <div class="row mt-4">
         <div class="col-12">
-            <h3>Todos los Gastos</h3>
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Pagado por</th>
-                        <th>Descripción</th>
-                        <th>Categoría</th>
-                        <th>Total</th>
-                        <th>Parte Sara (63%)</th>
-                        <th>Parte Adri (37%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for gasto in gastos %}
-                    <tr data-categoria="{{ gasto.categoria }}">
-                        <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
-                        <td>{{ gasto.pagado_por }}</td>
-                        <td>{{ gasto.descripcion }}</td>
-                        <td>{{ gasto.categoria }}</td>
-                        <td>{{ gasto.monto_total|floatformat:2 }} €</td>
-                        <td>{{ gasto.parte_sara|floatformat:2 }} €</td>
-                        <td>{{ gasto.parte_adri|floatformat:2 }} €</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <!-- La clase table-responsive permite desplazar la tabla horizontalmente en móviles -->
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Pagado por</th>
+                            <th>Descripción</th>
+                            <th>Categoría</th>
+                            <th>Total</th>
+                            <th>Parte Sara (63%)</th>
+                            <th>Parte Adri (37%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for gasto in gastos %}
+                        <tr data-categoria="{{ gasto.categoria }}">
+                            <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
+                            <td>{{ gasto.pagado_por }}</td>
+                            <td>{{ gasto.descripcion }}</td>
+                            <td>{{ gasto.categoria }}</td>
+                            <td>{{ gasto.monto_total|floatformat:2 }} €</td>
+                            <td>{{ gasto.parte_sara|floatformat:2 }} €</td>
+                            <td>{{ gasto.parte_adri|floatformat:2 }} €</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
             <!-- Leyenda de categorías -->
             <div class="mt-3">
