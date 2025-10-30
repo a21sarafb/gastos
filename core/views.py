@@ -340,6 +340,12 @@ def logout_usuario(request):
     logout(request)
     return redirect('login')
 
+from decimal import Decimal
+from django.utils.timezone import now
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Gasto, FondoComun, IngresoFondo, User
+from .views import PORCENTAJE_SARA, PORCENTAJE_ADRI  # Asegúrate de importar tus constantes
 
 @login_required
 def panel_gastos(request):
@@ -364,6 +370,7 @@ def panel_gastos(request):
         'Compras piso': 'bg-primary bg-opacity-50',
         'Otros': 'bg-secondary bg-opacity-50',
     }
+
     # Obtener usuarios fijos
     try:
         sara = User.objects.get(username='sara')
@@ -374,6 +381,7 @@ def panel_gastos(request):
             'core/error.html',
             {'mensaje': 'Error: Los usuarios sara y adri deben existir en el sistema'},
         )
+
     usuario_actual = request.user
     otro_usuario = adri if usuario_actual == sara else sara
     # Determinar los porcentajes de cada usuaria
@@ -383,8 +391,26 @@ def panel_gastos(request):
     else:
         mi_porcentaje = PORCENTAJE_ADRI
         otro_porcentaje = PORCENTAJE_SARA
-    # Obtener todos los gastos
-    todos_los_gastos = Gasto.objects.all().order_by('-fecha')
+
+    # Obtener filtros de la URL
+    cat_filter  = request.GET.get('cat')
+    year_filter = request.GET.get('year')
+    month_filter = request.GET.get('month')
+
+    # Obtener todos los gastos y aplicar filtros
+    todos_los_gastos = Gasto.objects.all()
+    if cat_filter:
+        todos_los_gastos = todos_los_gastos.filter(categoria=cat_filter)
+    if year_filter:
+        if month_filter:
+            todos_los_gastos = todos_los_gastos.filter(
+                fecha__year=year_filter, fecha__month=month_filter
+            )
+        else:
+            todos_los_gastos = todos_los_gastos.filter(fecha__year=year_filter)
+    todos_los_gastos = todos_los_gastos.order_by('-fecha')
+
+    # Procesar gastos para calcular deuda y partes correspondientes
     deuda_total = Decimal('0')
     gastos_procesados = []
     for gasto in todos_los_gastos:
@@ -401,14 +427,13 @@ def panel_gastos(request):
                     'monto_total': gasto.monto_total,
                     'parte_sara': parte_sara,
                     'parte_adri': parte_adri,
-                    # Indicamos que el gasto se pagó desde el fondo
                     'pagado_por': 'Cuenta común',
                     'categoria': categoria_nombre,
                     'color_clase': CATEGORIA_COLORES.get(categoria_nombre, ''),
                 }
             )
-            # saltamos el cálculo de deuda para este gasto
-            continue
+            continue  # saltamos el cálculo de deuda para este gasto
+
         # Balance de deuda según quién pagó cuando no hay fondo asociado
         if gasto.pagado_por == usuario_actual:
             if usuario_actual == sara:
@@ -420,6 +445,7 @@ def panel_gastos(request):
                 deuda_total -= parte_sara  # Sara debe a Adri
             else:
                 deuda_total -= parte_adri  # Adri debe a Sara
+
         gastos_procesados.append(
             {
                 'fecha': gasto.fecha,
@@ -432,8 +458,17 @@ def panel_gastos(request):
                 'color_clase': CATEGORIA_COLORES.get(categoria_nombre, ''),
             }
         )
-    # Construir leyenda de categorías para mostrar
-    leyenda_categorias = {nombre: CATEGORIA_COLORES.get(nombre, '') for nombre in CATEGORIA_NOMBRES.values()}
+
+    # Construir selectores para filtros (años, meses y categorías)
+    today = now().date()
+    years = list(range(today.year, today.year - 5, -1))
+    months = [
+        (1, 'Enero'), (2, 'Febrero'), (3, 'Marzo'), (4, 'Abril'),
+        (5, 'Mayo'), (6, 'Junio'), (7, 'Julio'), (8, 'Agosto'),
+        (9, 'Septiembre'), (10, 'Octubre'), (11, 'Noviembre'), (12, 'Diciembre'),
+    ]
+    categorias_filtro = Gasto.CATEGORIAS  # Lista de tuplas (código, nombre)
+
     context = {
         'gastos': gastos_procesados,
         'deuda_total': deuda_total,
@@ -442,6 +477,12 @@ def panel_gastos(request):
         'otro_porcentaje': otro_porcentaje * 100,
         'categoria_colores': CATEGORIA_COLORES,
         'usuario_actual': usuario_actual.username,
+        'categorias': categorias_filtro,
+        'years': years,
+        'months': months,
+        'cat': cat_filter,
+        'year': year_filter,
+        'month': month_filter,
     }
     return render(request, 'core/panel_gastos.html', context)
 
@@ -520,6 +561,9 @@ def resumen_finanzas(request):
         {'nombre': nombre, 'total': totales_por_categoria[nombre].quantize(Decimal('0.01'))}
         for nombre in labels_categoria
     ]
+    # total general del mes
+    total_general = sum(totales_por_categoria.values(), Decimal('0')).quantize(Decimal('0.01'))
+
 
     # Totales mensuales de los últimos seis meses (sin cambios)
     seis_meses_atras = hoy - datetime.timedelta(days=180)
@@ -543,11 +587,10 @@ def resumen_finanzas(request):
         'data_categoria': json.dumps(data_categoria),
         'labels_mes': json.dumps(labels_mes),
         'data_mes': json.dumps(data_mes),
-        'tabla_categoria': tabla_categoria,  # para la tabla en la plantilla
+        'tabla_categoria': tabla_categoria,
+        'total_general': total_general,  # para la tabla en la plantilla
     }
     return render(request, 'core/resumen.html', context)
-
-
 
 @login_required
 def actualizar_fondo(request, fondo_id: int):
