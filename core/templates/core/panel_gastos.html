@@ -1,11 +1,4 @@
-{% extends 'core/base.html' %}
-{% block content %}
-<div class="container mt-4 fade-in">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0"><i class="bi bi-journal-text"></i> Panel de Gastos - {{ usuario_actual }}</h2>
-    <a href="{% url 'crear_gasto' %}" class="btn btn-outline-primary"><i class="bi bi-plus-circle"></i> Nuevo Gasto</a>
-  </div>
- <!-- {## Mostrar balance entre los dos usuarios 
+<!-- {## Mostrar balance entre los dos usuarios 
     <div class="row mt-4">
         <div class="col-12 col-md-6">
             <div class="card">
@@ -28,66 +21,97 @@
         </div>
     </div>
 ##} -->
-  <h5 class="text-muted mb-3">Historial de gastos</h5>
+{% extends 'core/base.html' %} {% block content %}
+<div class="container mt-4 fade-in">
+  <div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h2 class="h4 mb-0">Panel de Gastos - {{ usuario_actual }}</h2>
+      <a href="{% url 'crear_gasto' %}" class="btn btn-primary btn-sm"
+        >Nuevo Gasto</a
+      >
+    </div>
 
-  <form method="get" class="row gy-2 gx-3 mb-4 align-items-end">
-    <div class="col-12 col-md-4">
-      <label for="cat" class="form-label">Categoría</label>
-        <select name="cat" class="form-select" id="cat">
-            <option value="">Todas</option>
-            {% for codigo, nombre in categorias %}
-                <option value="{{ codigo }}" {% if codigo|stringformat:'s' == cat %}selected{% endif %}>
-                    {{ nombre }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-6 col-md-3">
-      <label for="month" class="form-label">Mes</label>
-        <select id="month" name="month" class="form-select">
-            <option value="">Todos</option>
-            {% for m, nombre_mes in months %}
-                <option value="{{ m }}" {% if month|stringformat:'s' == m|stringformat:'s' %}selected{% endif %}>{{ nombre_mes }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-12 col-md-2">
-      <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-    </div>
-  </form>
+    <div class="table-container mt-3">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="small text-muted">
+            <tr>
+              <th>Fecha</th>
+              <th>Descripción</th>
+              <th>Categoría</th>
+              <th class="text-end">Total</th>
+              <th class="text-end">Sara (63%)</th>
+              <th class="text-end">Adri (37%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for gasto in gastos %}
+            <tr class="align-middle" data-categoria="{{ gasto.categoria }}">
+              <td data-label="Fecha">
+                <div class="d-block d-md-none label">Fecha</div>
+                <div class="value">{{ gasto.fecha|date:"d/m/Y" }}</div>
+              </td>
 
-  <div class="table-responsive fade-in">
-    <table class="table table-hover align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>Fecha</th>
-          <th>Descripción</th>
-          <th>Categoría</th>
-          <th>Total</th>
-          <th>Sara (63%)</th>
-          <th>Adri (37%)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for gasto in gastos %}
-        <tr class="fade-in" data-categoria="{{ gasto.categoria }}">
-          <td data-label="Fecha"><span class="label d-md-none">Fecha</span><span class="value">{{ gasto.fecha|date:"d/m/Y" }}</span></td>
-          <td data-label="Descripción"><span class="label d-md-none">Descripción</span><span class="value">{{ gasto.descripcion }}</span></td>
-          <td data-label="Categoría"><span class="label d-md-none">Categoría</span><span class="value">{{ gasto.categoria }}</span></td>
-          <td data-label="Total"><span class="label d-md-none">Total</span><span class="value">{{ gasto.monto_total|floatformat:2 }} €</span></td>
-          <td data-label="Sara (63%)"><span class="label d-md-none">Sara</span><span class="value">{{ gasto.parte_sara|floatformat:2 }} €</span></td>
-          <td data-label="Adri (37%)"><span class="label d-md-none">Adri</span><span class="value">{{ gasto.parte_adri|floatformat:2 }} €</span></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+              <td data-label="Descripción">
+                <div class="d-block d-md-none label">Descripción</div>
+                <div class="value">{{ gasto.descripcion }}</div>
+              </td>
+
+              <td data-label="Categoría">
+                <div class="d-block d-md-none label">Categoría</div>
+                <div class="value">
+                  <span
+                    class="row-badge small text-muted px-2 py-1"
+                    style="background: rgba(0, 0, 0, 0.03)"
+                  >
+                    {{ gasto.categoria }}
+                  </span>
+                </div>
+              </td>
+
+              <td data-label="Total" class="text-end">
+                <div class="d-block d-md-none label">Total</div>
+                <div class="value">{{ gasto.monto_total|floatformat:2 }} €</div>
+              </td>
+
+              <td data-label="Sara" class="text-end">
+                <div class="d-block d-md-none label">Sara</div>
+                <div class="value">{{ gasto.parte_sara|floatformat:2 }} €</div>
+              </td>
+
+              <td data-label="Adri" class="text-end">
+                <div class="d-block d-md-none label">Adri</div>
+                <div class="value">{{ gasto.parte_adri|floatformat:2 }} €</div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center small-muted py-4">
+                No hay gastos registrados
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-3 small-muted d-md-none">
+      Desliza cada tarjeta para ver detalle. Toca una fila para acciones.
+    </div>
   </div>
-  <div class="text-muted small d-md-none mt-2">Desliza para ver todos los datos. En escritorio se mantiene la tabla tradicional.</div>
   <script>
     // mejora UX: submit automático solo en móviles si se usan selects
-    const cat = document.getElementById('cat'), month = document.getElementById('month');
-    if (cat) cat.addEventListener('change', () => document.querySelector('form').submit());
-    if (month) month.addEventListener('change', () => document.querySelector('form').submit());
+    const cat = document.getElementById("cat"),
+      month = document.getElementById("month");
+    if (cat)
+      cat.addEventListener("change", () =>
+        document.querySelector("form").submit()
+      );
+    if (month)
+      month.addEventListener("change", () =>
+        document.querySelector("form").submit()
+      );
   </script>
 </div>
 {% endblock %}
