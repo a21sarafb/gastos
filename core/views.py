@@ -492,27 +492,36 @@ def resumen_finanzas(request):
 
     Prepara datos agregados para representar los gastos de los últimos meses
     y del mes actual desglosados por categoría. Los datos se serializan a
-    JSON para que puedan ser consumidos por Chart.js en la plantilla.
-    """
+    JSON para que puedan ser consumidos por Chart.js en la plantilla."""
+
     hoy = datetime.date.today()
-    # Totales por categoría en el mes actual
     inicio_mes = hoy.replace(day=1)
+
+    # Totales por categoría en el mes actual (agrupar por nombre legible)
     gastos_categoria = (
         Gasto.objects
         .filter(fecha__gte=inicio_mes, fecha__lte=hoy)
         .values('categoria')
         .annotate(total=Sum('monto_total'))
     )
-    labels_categoria = []
-    data_categoria = []
-    # Convertimos las claves de categoría a sus nombres legibles
     categorias_dict = dict(Gasto.CATEGORIAS)
+    totales_por_categoria = {}
     for item in gastos_categoria:
         codigo = item['categoria']
-        label = categorias_dict.get(codigo, codigo)
-        labels_categoria.append(label)
-        data_categoria.append(float(item['total']))
-    # Totales mensuales de los últimos seis meses
+        nombre = categorias_dict.get(codigo, codigo)
+        total = item['total'] or Decimal('0')
+        # Suma al total existente si el nombre ya se ha añadido
+        totales_por_categoria[nombre] = totales_por_categoria.get(nombre, Decimal('0')) + total
+
+    # Preparar datos para el gráfico y la tabla
+    labels_categoria = list(totales_por_categoria.keys())
+    data_categoria = [float(t) for t in totales_por_categoria.values()]
+    tabla_categoria = [
+        {'nombre': nombre, 'total': totales_por_categoria[nombre].quantize(Decimal('0.01'))}
+        for nombre in labels_categoria
+    ]
+
+    # Totales mensuales de los últimos seis meses (sin cambios)
     seis_meses_atras = hoy - datetime.timedelta(days=180)
     gastos_mes = (
         Gasto.objects
@@ -528,13 +537,16 @@ def resumen_finanzas(request):
         mes_date = item['mes']
         labels_mes.append(mes_date.strftime('%b %Y'))
         data_mes.append(float(item['total']))
+
     context = {
         'labels_categoria': json.dumps(labels_categoria),
         'data_categoria': json.dumps(data_categoria),
         'labels_mes': json.dumps(labels_mes),
         'data_mes': json.dumps(data_mes),
+        'tabla_categoria': tabla_categoria,  # para la tabla en la plantilla
     }
     return render(request, 'core/resumen.html', context)
+
 
 
 @login_required
