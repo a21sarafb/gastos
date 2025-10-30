@@ -394,24 +394,33 @@ def panel_gastos(request):
     # Obtener filtros de la URL
     cat_filter = request.GET.get('cat')
     month_filter = request.GET.get('month')
-    year_filter = request.GET.get('year')  # Opcional; puede estar vacío
+    year_filter = request.GET.get('year')
 
     # Obtener todos los gastos
     todos_los_gastos = Gasto.objects.all()
 
-    # Filtrar por categoría
+    # Filtrar por categoría (código o nombre)
     if cat_filter:
-        todos_los_gastos = todos_los_gastos.filter(categoria=cat_filter)
+        # Convertimos el código a nombre legible si existe
+        categorias_dict = dict(Gasto.CATEGORIAS)  # {'1': 'Supermercado', ...}
+        display_name = categorias_dict.get(cat_filter)
+        if display_name:
+            # Filtramos por código (si hubiera registros antiguos) o por nombre
+            todos_los_gastos = todos_los_gastos.filter(
+                Q(categoria=cat_filter) | Q(categoria=display_name)
+            )
+        else:
+            # Si el parámetro ya es un nombre, lo aplicamos directamente
+            todos_los_gastos = todos_los_gastos.filter(categoria=cat_filter)
 
-    # Filtrar por mes (si se seleccionó)
+    # Filtrar por mes si se selecciona
     if month_filter:
         todos_los_gastos = todos_los_gastos.filter(fecha__month=month_filter)
 
-    # Filtrar por año (opcional, de cara a años futuros)
+    # Filtrar por año opcionalmente (para años futuros)
     if year_filter:
         todos_los_gastos = todos_los_gastos.filter(fecha__year=year_filter)
 
-    # Ordenar y procesar los gastos como ya lo hacías
     todos_los_gastos = todos_los_gastos.order_by('-fecha')
 
     # Procesar gastos para calcular deuda y partes correspondientes
