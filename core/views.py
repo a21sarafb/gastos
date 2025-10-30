@@ -391,23 +391,27 @@ def panel_gastos(request):
     else:
         mi_porcentaje = PORCENTAJE_ADRI
         otro_porcentaje = PORCENTAJE_SARA
-
     # Obtener filtros de la URL
-    cat_filter  = request.GET.get('cat')
-    year_filter = request.GET.get('year')
+    cat_filter = request.GET.get('cat')
     month_filter = request.GET.get('month')
+    year_filter = request.GET.get('year')  # Opcional; puede estar vacío
 
-    # Obtener todos los gastos y aplicar filtros
+    # Obtener todos los gastos
     todos_los_gastos = Gasto.objects.all()
+
+    # Filtrar por categoría
     if cat_filter:
         todos_los_gastos = todos_los_gastos.filter(categoria=cat_filter)
+
+    # Filtrar por mes (si se seleccionó)
+    if month_filter:
+        todos_los_gastos = todos_los_gastos.filter(fecha__month=month_filter)
+
+    # Filtrar por año (opcional, de cara a años futuros)
     if year_filter:
-        if month_filter:
-            todos_los_gastos = todos_los_gastos.filter(
-                fecha__year=year_filter, fecha__month=month_filter
-            )
-        else:
-            todos_los_gastos = todos_los_gastos.filter(fecha__year=year_filter)
+        todos_los_gastos = todos_los_gastos.filter(fecha__year=year_filter)
+
+    # Ordenar y procesar los gastos como ya lo hacías
     todos_los_gastos = todos_los_gastos.order_by('-fecha')
 
     # Procesar gastos para calcular deuda y partes correspondientes
