@@ -394,33 +394,24 @@ def panel_gastos(request):
     # Obtener filtros de la URL
     cat_filter = request.GET.get('cat')
     month_filter = request.GET.get('month')
-    year_filter = request.GET.get('year')
+    year_filter = request.GET.get('year')  # Opcional; puede estar vacío
 
     # Obtener todos los gastos
     todos_los_gastos = Gasto.objects.all()
 
-    # Filtrar por categoría (código o nombre)
+    # Filtrar por categoría
     if cat_filter:
-        # Convertimos el código a nombre legible si existe
-        categorias_dict = dict(Gasto.CATEGORIAS)  # {'1': 'Supermercado', ...}
-        display_name = categorias_dict.get(cat_filter)
-        if display_name:
-            # Filtramos por código (si hubiera registros antiguos) o por nombre
-            todos_los_gastos = todos_los_gastos.filter(
-                Q(categoria=cat_filter) | Q(categoria=display_name)
-            )
-        else:
-            # Si el parámetro ya es un nombre, lo aplicamos directamente
-            todos_los_gastos = todos_los_gastos.filter(categoria=cat_filter)
+        todos_los_gastos = todos_los_gastos.filter(categoria=cat_filter)
 
-    # Filtrar por mes si se selecciona
+    # Filtrar por mes (si se seleccionó)
     if month_filter:
         todos_los_gastos = todos_los_gastos.filter(fecha__month=month_filter)
 
-    # Filtrar por año opcionalmente (para años futuros)
+    # Filtrar por año (opcional, de cara a años futuros)
     if year_filter:
         todos_los_gastos = todos_los_gastos.filter(fecha__year=year_filter)
 
+    # Ordenar y procesar los gastos como ya lo hacías
     todos_los_gastos = todos_los_gastos.order_by('-fecha')
 
     # Procesar gastos para calcular deuda y partes correspondientes
@@ -577,6 +568,29 @@ def resumen_finanzas(request):
     # total general del mes
     total_general = sum(totales_por_categoria.values(), Decimal('0')).quantize(Decimal('0.01'))
 
+    # === Nuevos datos: desglose de supermercados dentro de la categoría
+    # "Supermercado" para el mes actual ===
+    # Muchos gastos se clasifican bajo la categoría "Supermercado", pero
+    # queremos saber cuánto se ha gastado en cada tienda específica (Eroski,
+    # Mercadona, Gadis, etc.).  Agrupamos las descripciones de los gastos
+    # (insensibles a mayúsculas/minúsculas) y sumamos el monto total por cada
+    # una.  Se contempla que la categoría pueda almacenarse como código ('1')
+    # o como nombre legible ('Supermercado').
+    gastos_supermercado = (
+        Gasto.objects
+        .filter(fecha__gte=inicio_mes, fecha__lte=hoy)
+        .filter(Q(categoria='1') | Q(categoria__iexact='Supermercado'))
+    )
+    totales_por_super = {}
+    for gasto in gastos_supermercado:
+        # Normalizamos la descripción para agrupar tiendas iguales con distinta
+        # capitalización.  Usamos strip() para eliminar espacios al inicio y
+        # al final, y title() para poner la primera letra en mayúscula.
+        desc = gasto.descripcion.strip().title()
+        totales_por_super[desc] = totales_por_super.get(desc, Decimal('0')) + gasto.monto_total
+    labels_super = list(totales_por_super.keys())
+    data_super = [float(totales_por_super[nombre]) for nombre in labels_super]
+
 
     # Totales mensuales de los últimos seis meses (sin cambios)
     seis_meses_atras = hoy - datetime.timedelta(days=180)
@@ -602,6 +616,9 @@ def resumen_finanzas(request):
         'data_mes': json.dumps(data_mes),
         'tabla_categoria': tabla_categoria,
         'total_general': total_general,  # para la tabla en la plantilla
+        # Datos para el gráfico de supermercados
+        'labels_super': json.dumps(labels_super),
+        'data_super': json.dumps(data_super),
     }
     return render(request, 'core/resumen.html', context)
 
