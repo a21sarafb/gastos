@@ -491,6 +491,9 @@ def panel_gastos(request):
 
     context = {
         'gastos': gastos_procesados,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'is_paginated': paginator.num_pages > 1,
         'deuda_total': deuda_total,
         'otro_usuario': otro_usuario,
         'mi_porcentaje': mi_porcentaje * 100,
@@ -503,9 +506,6 @@ def panel_gastos(request):
         'cat': cat_filter,
         'year': year_filter,
         'month': month_filter,
-        'page_obj': page_obj,
-        'paginator': paginator,
-        'is_paginated': paginator.num_pages > 1,
     }
     return render(request, 'core/panel_gastos.html', context)
 
