@@ -65,7 +65,7 @@
   Chart.defaults.font.family = 'Inter';
   Chart.defaults.color = '#444';
 
-  const pieColors = ['#FFCDD2', '#FFE0B2', '#C8E6C9', '#BBDEFB', '#E1BEE7', '#F8BBD0'];
+  const pieColors = ['#D52D53', '#EF769D', '#F5A9B8', '#FF9B55', '#FF6600', '#A30262'];     
 
   new Chart(document.getElementById('graficoCategorias'), {
     type: 'pie',
@@ -91,7 +91,7 @@
       datasets: [{
         label: 'Total Gastos',
         data: {{ data_mes|safe }},
-        backgroundColor: '#F8BBD0',
+        backgroundColor: '#D52D53',
         borderColor: '#F48FB1',
         borderWidth: 1,
         borderRadius: 8,
@@ -118,7 +118,7 @@
 
   const labelsSuper = {{ labels_super|safe }};
   const dataSuper = {{ data_super|safe }};
-  const colorsSuper = ['#80DEEA', '#FFE082', '#A5D6A7', '#FFAB91', '#CE93D8', '#FFCDD2', '#F0F4C3', '#B39DDB'];
+  const colorsSuper = ['#D52D53', '#EF769D', '#F5A9B8', '#FF9B55', '#FF6600', '#A30262'];
   const superColors = labelsSuper.map((_, i) => colorsSuper[i % colorsSuper.length]);
 
   new Chart(document.getElementById('graficoSupermercados'), {
