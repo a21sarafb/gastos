@@ -1,4 +1,6 @@
 from django import template
+from django.utils.http import urlencode
+
 
 
 """
@@ -29,14 +31,18 @@ def get_item(dictionary, key):
     """Devuelve el valor asociado a ``key`` en ``dictionary`` o ``None``."""
     return dictionary.get(key)
 
-from django import template
-from django.utils.http import urlencode
-
-register = template.Library()
 
 @register.simple_tag(takes_context=True)
 def url_replace(context, **kwargs):
     query = context['request'].GET.copy()
+    
+    # Limpiar los valores de lista
+    for k in query.keys():
+        if isinstance(query[k], list):
+            query[k] = query[k][0]
+    
+    # Actualizar con nuevos valores
     for k, v in kwargs.items():
-        query[k] = v
+        query[k] = str(v)
+    
     return '?' + urlencode(query)
