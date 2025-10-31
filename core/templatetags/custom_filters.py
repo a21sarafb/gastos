@@ -32,15 +32,30 @@ def get_item(dictionary, key):
     return dictionary.get(key)
 
 
+from django import template
+from django.utils.http import urlencode
+import ast
+
+register = template.Library()
+
 @register.simple_tag(takes_context=True)
 def url_replace(context, **kwargs):
     query = context['request'].GET.copy()
     
-    # Limpiar los valores de lista
-    for k in query.keys():
-        if isinstance(query[k], list):
-            query[k] = query[k][0]
-    
+    # Limpiar parámetros existentes
+    for key in query:
+        value = query[key]
+        if isinstance(value, list):
+            value = value[0]
+        # Limpiar corchetes si existen
+        if value.startswith('[') and value.endswith(']'):
+            try:
+                # Extraer valor dentro de los corchetes
+                cleaned = ast.literal_eval(value)[0]
+                query[key] = str(cleaned)
+            except:
+                query[key] = value.strip('[]\'\"')
+        
     # Actualizar con nuevos valores
     for k, v in kwargs.items():
         query[k] = str(v)

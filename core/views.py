@@ -346,6 +346,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from .models import Gasto, FondoComun, IngresoFondo, User
 from .views import PORCENTAJE_SARA, PORCENTAJE_ADRI  # Asegúrate de importar tus constantes
+import ast
 
 @login_required
 def panel_gastos(request):
@@ -393,22 +394,25 @@ def panel_gastos(request):
         otro_porcentaje = PORCENTAJE_SARA
     # Obtener filtros de la URL
     # Limpiar los valores de los filtros que pueden venir como listas
-    cat_filter = request.GET.get('cat')
-    if isinstance(cat_filter, list):
-        cat_filter = cat_filter[0]
-    
-    month_filter = request.GET.get('month')
-    if isinstance(month_filter, list):
-        month_filter = month_filter[0]
-    
-    year_filter = request.GET.get('year')
-    if isinstance(year_filter, list):
-        year_filter = year_filter[0]
-    
-    page_number = request.GET.get('page', '1')
-    if isinstance(page_number, list):
-        page_number = page_number[0]
+    def clean_param(param):
+        if not param:
+            return None
+        if isinstance(param, list):
+            param = param[0]
+        if isinstance(param, str):
+            # Limpiar corchetes si existen
+            if param.startswith('[') and param.endswith(']'):
+                try:
+                    return ast.literal_eval(param)[0]
+                except:
+                    return param.strip('[]\'\"')
+        return param
 
+    # Limpiar parámetros
+    cat_filter = clean_param(request.GET.get('cat'))
+    month_filter = clean_param(request.GET.get('month'))
+    year_filter = clean_param(request.GET.get('year'))
+    page_number = clean_param(request.GET.get('page', '1'))
 
     # Obtener todos los gastos
     todos_los_gastos = Gasto.objects.all()
@@ -498,22 +502,35 @@ def panel_gastos(request):
     ]
     categorias_filtro = Gasto.CATEGORIAS  # Lista de tuplas (código, nombre)
 
-     # Asegurarse de que page_number sea un entero válido
+    # Asegurar que page_number sea un entero válido
     try:
         page_number = int(page_number)
     except (ValueError, TypeError):
         page_number = 1
 
+    # Aplicar filtros
+    gastos_procesados = Gasto.objects.all()
+    if cat_filter:
+        gastos_procesados = gastos_procesados.filter(categoria=cat_filter)
+    if month_filter:
+        gastos_procesados = gastos_procesados.filter(fecha__month=month_filter)
+    if year_filter:
+        gastos_procesados = gastos_procesados.filter(fecha__year=year_filter)
+
+    # Paginación
     paginator = Paginator(gastos_procesados, 5)
     page_obj = paginator.get_page(page_number)
 
 
+
     context = {
-        'request': request,
         'gastos': page_obj,
         'page_obj': page_obj,
         'paginator': paginator,
         'is_paginated': paginator.num_pages > 1,
+        'cat': cat_filter,
+        'year': year_filter,
+        'month': month_filter,
         'deuda_total': deuda_total,
         'otro_usuario': otro_usuario,
         'mi_porcentaje': mi_porcentaje * 100,
@@ -523,9 +540,6 @@ def panel_gastos(request):
         'categorias': categorias_filtro,
         'years': years,
         'months': months,
-        'cat': cat_filter,
-        'year': year_filter,
-        'month': month_filter,
     }
     return render(request, 'core/panel_gastos.html', context)
 
