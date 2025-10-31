@@ -484,6 +484,11 @@ def panel_gastos(request):
     ]
     categorias_filtro = Gasto.CATEGORIAS  # Lista de tuplas (código, nombre)
 
+     # Paginador: 10 gastos por página
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(gastos_procesados, 10)
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'gastos': gastos_procesados,
         'deuda_total': deuda_total,
@@ -498,6 +503,9 @@ def panel_gastos(request):
         'cat': cat_filter,
         'year': year_filter,
         'month': month_filter,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'is_paginated': paginator.num_pages > 1,
     }
     return render(request, 'core/panel_gastos.html', context)
 
