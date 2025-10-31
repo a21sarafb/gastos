@@ -490,7 +490,7 @@ def panel_gastos(request):
     page_obj = paginator.get_page(page_number)
 
     context = {
-        'gastos': gastos_procesados,
+        'gastos': page_obj,
         'page_obj': page_obj,
         'paginator': paginator,
         'is_paginated': paginator.num_pages > 1,
