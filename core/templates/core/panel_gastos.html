@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load custom_filters %}
 {% block content %}
 <div class="container mt-4 fade-in">
   <div class="card p-3 mb-4">
@@ -112,47 +113,28 @@
       </div>
     </div>
 
-<!-- Paginador -->
+<!-- Paginador simplificado -->
 {% if is_paginated %}
-<nav aria-label="Paginación de gastos" class="mt-3 d-flex justify-content-center">
-  <ul class="pagination pagination-clean mb-0">
-    {# Primera / Anterior - solo calcular los números si existen #}
+<nav aria-label="Paginación de gastos" class="mt-3 d-flex justify-content-between align-items-center">
+  <div class="d-flex gap-2">
     {% if page_obj.has_previous %}
-      <li class="page-item">
-        <a class="page-link" href="?page=1" aria-label="Primera" title="Primera página">&laquo;&laquo;</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior" title="Página anterior">&laquo;</a>
-      </li>
-    {% else %}
-      <li class="page-item disabled"><span class="page-link">&laquo;&laquo;</span></li>
-      <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+      <a href="{% url_replace page=page_obj.previous_page_number %}" 
+         class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-chevron-left"></i> Anterior
+      </a>
     {% endif %}
-
-    {# Números cercanos #}
-    {% for num in page_obj.paginator.page_range %}
-      {% if page_obj.number == num %}
-        <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
-      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-      {% elif num == 1 or num == page_obj.paginator.num_pages %}
-        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-      {% endif %}
-    {% endfor %}
-
-    {# Siguiente / Última - solo calcular si existen #}
+    
     {% if page_obj.has_next %}
-      <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Siguiente" title="Página siguiente">&raquo;</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Última" title="Última página">&raquo;&raquo;</a>
-      </li>
-    {% else %}
-      <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-      <li class="page-item disabled"><span class="page-link">&raquo;&raquo;</span></li>
+      <a href="{% url_replace page=page_obj.next_page_number %}" 
+         class="btn btn-sm btn-outline-secondary">
+        Siguiente <i class="bi bi-chevron-right"></i>
+      </a>
     {% endif %}
-  </ul>
+  </div>
+  
+  <small class="text-muted">
+    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+  </small>
 </nav>
 {% endif %}
 
