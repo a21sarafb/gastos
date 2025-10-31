@@ -170,11 +170,6 @@ def lista_gastos(request):
     else:
         gastos = gastos.order_by('-fecha','-id')
 
-    # paginación (12 tarjetas por página)
-    paginator  = Paginator(gastos, 12)
-    page_number = request.GET.get('page',1)
-    gastos_page = paginator.get_page(page_number)
-
     # selectores para los filtros
     categorias = Categoria.objects.order_by('nombre')
     fondos     = FondoComun.objects.order_by('nombre')
@@ -193,7 +188,6 @@ def lista_gastos(request):
         'gastos': gastos_page,
         'categorias': categorias,
         'fondos': fondos,
-        'total_pagina': total_pagina,
         'q': q,
         'cat': cat_id,
         'fondo': fondo_id,
