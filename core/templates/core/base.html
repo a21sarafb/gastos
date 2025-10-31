@@ -35,7 +35,7 @@
                     radial-gradient(at 44% 68%, #FFFFFF 0px, transparent 50%), 
                     radial-gradient(at 30% 21%, #FF9B55 0px, transparent 50%), 
                     radial-gradient(at 2% 68%, #FF6600 0px, transparent 50%), 
-                    radial-gradient(at 88% 58%, #A30262 0px, transparent 50%) #FFFFFF;;
+                    radial-gradient(at 88% 58%, #a2156988 0px, transparent 50%) #FFFFFF;;
         mix-blend-mode: var(--_gradient-blend-mode);
         background-attachment: fixed;
         background-size: cover;
@@ -73,15 +73,30 @@
       background: transparent;
     }
 
+    a, label, tr td, h2.h4.mb-0 {
+        color: black !important;
+    }
+
+    .card table.table tbody tr, .card table.table tbody td {
+        background-color: transparent !important;
+        background-image: none !important;
+        color: black !important;
+    }
+
     @media (min-width: 768px){
-      .table tbody tr:hover {
-        background: rgba(245,242,247,0.9);
-        transition: background-color .18s ease;
-      }
+        .table tbody tr:hover {
+            transition: background-color .18s ease;
+        }
+        a, label, tr td, h2.h4.mb-0 {
+            color: black !important;
+        }
     }
 
     /* Móvil: filas -> tarjetas */
     @media (max-width: 767.98px){
+        a, label, tr td, h2.h4.mb-0 {
+            color: black !important;
+        }
       .table thead { display: none; }
       .table tbody { display:block; padding:0; }
       .table tbody tr {
@@ -95,6 +110,7 @@
         backdrop-filter: blur(4.4px);
         -webkit-backdrop-filter: blur(4.4px);
         border: 1px solid rgba(243, 243, 243, 0.4);
+        color: black !important;
        /* border: 1px solid rgba(17,24,39,0.04);
         box-shadow: 0 8px 22px rgba(17,24,39,0.03);*/
       }
@@ -108,32 +124,7 @@
       .table tbody tr td .value { font-weight:600; color:#222; }
     }
 
-    /* Coloreado sutil por categoría (bordes + tint) */
-    tr[data-categoria="Viajes"] {
-      border-left: 4px solid rgba(255, 205, 86, 0.35);
-      background-image: linear-gradient(90deg, rgba(255,205,86,0.03), transparent);
-    }
-    tr[data-categoria="Ocio"] {
-      border-left: 4px solid rgba(255, 159, 243, 0.24);
-      background-image: linear-gradient(90deg, rgba(255,159,243,0.03), transparent);
-    }
-    tr[data-categoria="Supermercado"] {
-      border-left: 4px solid rgba(148, 219, 255, 0.35);
-      background-image: linear-gradient(90deg, rgba(148,219,255,0.03), transparent);
-    }
-    tr[data-categoria="Gastos piso"] {
-      border-left: 4px solid rgba(181, 230, 193, 0.35);
-      background-image: linear-gradient(90deg, rgba(181,230,193,0.03), transparent);
-    }
-    tr[data-categoria="Otros"] {
-      border-left: 4px solid rgba(206, 206, 214, 0.35);
-      background-image: linear-gradient(90deg, rgba(206,206,214,0.02), transparent);
-    }
-
-    /* Asegurar contraste en celdas con tint */
-    tr[data-categoria] td { background: transparent !important; }
-
-    .row-badge { font-size:.72rem; padding:.18rem .5rem; border-radius:999px; background: rgba(0,0,0,0.03); color:#333; }
+    .row-badge { font-size:.72rem; padding:.18rem .5rem; border-radius:999px; background: rgba(0,0,0,0.03); color:#0a0a0a; }
     .small-muted { color: var(--muted); font-size:.9rem; }
     .btn { border-radius:.6rem; }
     .fade-in { animation: fadeInUp .45s ease both; }
