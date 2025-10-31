@@ -392,9 +392,23 @@ def panel_gastos(request):
         mi_porcentaje = PORCENTAJE_ADRI
         otro_porcentaje = PORCENTAJE_SARA
     # Obtener filtros de la URL
+    # Limpiar los valores de los filtros que pueden venir como listas
     cat_filter = request.GET.get('cat')
+    if isinstance(cat_filter, list):
+        cat_filter = cat_filter[0]
+    
     month_filter = request.GET.get('month')
-    year_filter = request.GET.get('year')  # Opcional; puede estar vacío
+    if isinstance(month_filter, list):
+        month_filter = month_filter[0]
+    
+    year_filter = request.GET.get('year')
+    if isinstance(year_filter, list):
+        year_filter = year_filter[0]
+    
+    page_number = request.GET.get('page', '1')
+    if isinstance(page_number, list):
+        page_number = page_number[0]
+
 
     # Obtener todos los gastos
     todos_los_gastos = Gasto.objects.all()
@@ -484,10 +498,15 @@ def panel_gastos(request):
     ]
     categorias_filtro = Gasto.CATEGORIAS  # Lista de tuplas (código, nombre)
 
-     # Paginador: 10 gastos por página
-    page_number = request.GET.get('page', 1)
-    paginator = Paginator(gastos_procesados, 10)
+     # Asegurarse de que page_number sea un entero válido
+    try:
+        page_number = int(page_number)
+    except (ValueError, TypeError):
+        page_number = 1
+
+    paginator = Paginator(gastos_procesados, 5)
     page_obj = paginator.get_page(page_number)
+
 
     context = {
         'request': request,
