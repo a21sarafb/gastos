@@ -540,6 +540,7 @@ def panel_gastos(request):
         'categorias': categorias_filtro,
         'years': years,
         'months': months,
+        'g': gastos_procesados,
     }
     return render(request, 'core/panel_gastos.html', context)
 
