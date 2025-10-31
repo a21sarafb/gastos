@@ -1,188 +1,353 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestión de Gastos</title>
-     <!-- ...existing code... -->
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Gastos</title>
+    <!-- ...existing code... -->
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
-  <!-- Tipografía moderna -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <!-- Tipografía moderna -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Tema pastel + Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/morph/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-  <style>
-    :root{
-      --pastel-1: #f9a1d4;
-      --pastel-2: #edcdfd;
-      --muted: #181818;
-      --accent: #e9cfe8;
-      --table-row: rgba(245,242,247,0.85);
-      --border-soft: rgba(17,24,39,0.06);
-      --glass: rgba(16, 15, 15, 0.6);
-    }
+    <!-- Tema pastel + Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/morph/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --pastel-1: #f9a1d4;
+        --pastel-2: #edcdfd;
+        --muted: #181818;
+        --accent: #e9cfe8;
+        --table-row: rgba(245, 242, 247, 0.85);
+        --border-soft: rgba(17, 24, 39, 0.06);
+        --glass: rgba(16, 15, 15, 0.6);
+      }
 
-    body {
+      body {
         --_gradient-blend-mode: normal;
         --_gradient-blur: 0px;
 
-        background: radial-gradient(at 74% 88%, #D52D53 0px, transparent 50%), 
-                    radial-gradient(at 47% 50%, #EF769D 0px, transparent 50%), 
-                    radial-gradient(at 44% 87%, #F5A9B8 0px, transparent 50%), 
-                    radial-gradient(at 44% 68%, #FFFFFF 0px, transparent 50%), 
-                    radial-gradient(at 30% 21%, #FF9B55 0px, transparent 50%), 
-                    radial-gradient(at 2% 68%, #FF6600 0px, transparent 50%), 
-                    radial-gradient(at 88% 58%, #b94189 0px, transparent 50%) #FFFFFF;;
+        background: radial-gradient(at 74% 88%, #d52d53 0px, transparent 50%),
+          radial-gradient(at 47% 50%, #ef769d 0px, transparent 50%),
+          radial-gradient(at 44% 87%, #f5a9b8 0px, transparent 50%),
+          radial-gradient(at 44% 68%, #ffffff 0px, transparent 50%),
+          radial-gradient(at 30% 21%, #ff9b55 0px, transparent 50%),
+          radial-gradient(at 2% 68%, #ff6600 0px, transparent 50%),
+          radial-gradient(at 88% 58%, #b94189 0px, transparent 50%) #ffffff;
         mix-blend-mode: var(--_gradient-blend-mode);
         background-attachment: fixed;
         background-size: cover;
         color: #181818 !important;
-        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial;
         -webkit-font-smoothing: antialiased;
         padding-bottom: 4rem;
         min-height: 100vh;
         overflow-y: auto;
-    }
+      }
 
-    .frosted-backdrop {
-        backdrop-filter: blur(var(--_gradient-blur)) contrast(100%) brightness(100%);
-        -webkit-backdrop-filter: blur(var(--_gradient-blur)) contrast(100%) brightness(100%);
-    }
+      .frosted-backdrop {
+        backdrop-filter: blur(var(--_gradient-blur)) contrast(100%)
+          brightness(100%);
+        -webkit-backdrop-filter: blur(var(--_gradient-blur)) contrast(100%)
+          brightness(100%);
+      }
 
-    .container { max-width: 980px; }
+      .container {
+        max-width: 980px;
+      }
 
-    .card {
+      .card {
         background: rgba(15, 15, 15, 0.07);
-        border-radius: .8rem;
+        border-radius: 0.8rem;
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         backdrop-filter: blur(4.4px);
         -webkit-backdrop-filter: blur(4.4px);
         border: 1px solid rgba(243, 243, 243, 0.4);
-    }
+      }
 
-    .table-container { background: transparent; padding: .6rem; border-radius: .75rem; }
+      .table-container {
+        background: transparent;
+        padding: 0.6rem;
+        border-radius: 0.75rem;
+      }
 
-    .table { background: transparent; border-collapse: separate; border-spacing: 0; }
+      .table {
+        background: transparent;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
 
-    .table thead th {
-      border-bottom: 1px solid rgba(17,24,39,0.06);
-      color: #171717;
-      font-weight:600;
-      background: transparent;
-    }
+      .table thead th {
+        border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+        color: #171717;
+        font-weight: 600;
+        background: transparent;
+      }
 
-    a, span, button, label, tr td, h2.h4.h5.mb-0 {
+      a,
+      span,
+      h5,
+      p,
+      button,
+      label,
+      tr td,
+      h2.h4.h5.mb-0 {
         color: black !important;
-    }
+      }
 
-    .card table.table tbody tr, .card table.table tbody td {
+      .card table.table tbody tr,
+      .card table.table tbody td {
         background-color: transparent !important;
         background-image: none !important;
         color: black !important;
-    }
+      }
 
-    @media (min-width: 768px){
+      @media (min-width: 768px) {
         .table tbody tr:hover {
-            transition: background-color .18s ease;
+          transition: background-color 0.18s ease;
         }
-        a, span, button, label, tr td, h2.h4.h5.mb-0 {
-            color: black !important;
+        a,
+        h5,
+        p,
+        span,
+        button,
+        label,
+        tr td,
+        h2.h4.mb-0 {
+          color: black !important;
         }
-    }
+      }
 
-    /* Móvil: filas -> tarjetas */
-    @media (max-width: 767.98px){
-        a, span, button, label, tr td, h2.h4.h5.mb-0 {
-            color: black !important;
+      /* Móvil: filas -> tarjetas */
+      @media (max-width: 767.98px) {
+        a,
+        span,
+        h5,
+        p,
+        button,
+        label,
+        tr td,
+        h2.h4.mb-0 {
+          color: black !important;
         }
-      .table thead { display: none; }
-      .table tbody { display:block; padding:0; }
-      .table tbody tr {
-        display: block;
-        margin-bottom: 12px;
-        padding: 12px;
-       /* background: linear-gradient(180deg, #ffffff, var(--pastel-2)); */
-        background: rgba(15, 15, 15, 0.07);
-        border-radius: .8rem;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(4.4px);
-        -webkit-backdrop-filter: blur(4.4px);
-        border: 1px solid rgba(243, 243, 243, 0.4);
-        color: black !important;
-       /* border: 1px solid rgba(17,24,39,0.04);
+        .table thead {
+          display: none;
+        }
+        .table tbody {
+          display: block;
+          padding: 0;
+        }
+        .table tbody tr {
+          display: block;
+          margin-bottom: 12px;
+          padding: 12px;
+          /* background: linear-gradient(180deg, #ffffff, var(--pastel-2)); */
+          background: rgba(15, 15, 15, 0.07);
+          border-radius: 0.8rem;
+          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+          backdrop-filter: blur(4.4px);
+          -webkit-backdrop-filter: blur(4.4px);
+          border: 1px solid rgba(243, 243, 243, 0.4);
+          color: black !important;
+          /* border: 1px solid rgba(17,24,39,0.04);
         box-shadow: 0 8px 22px rgba(17,24,39,0.03);*/
+        }
+        .table tbody tr td {
+          display: flex;
+          justify-content: space-between;
+          padding: 0.35rem 0;
+          border-bottom: none;
+        }
+        .table tbody tr td .label {
+          font-size: 0.82rem;
+          color: var(--muted);
+        }
+        .table tbody tr td .value {
+          font-weight: 600;
+          color: #222;
+        }
       }
-      .table tbody tr td {
-        display: flex;
-        justify-content: space-between;
-        padding: .35rem 0;
-        border-bottom: none;
+
+      .row-badge {
+        font-size: 0.72rem;
+        padding: 0.18rem 0.5rem;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.03);
+        color: #0a0a0a;
       }
-      .table tbody tr td .label { font-size:.82rem; color: var(--muted); }
-      .table tbody tr td .value { font-weight:600; color:#222; }
-    }
+      .small-muted {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .btn {
+        border-radius: 0.6rem;
+      }
+      .fade-in {
+        animation: fadeInUp 0.45s ease both;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
 
-    .row-badge { font-size:.72rem; padding:.18rem .5rem; border-radius:999px; background: rgba(0,0,0,0.03); color:#0a0a0a; }
-    .small-muted { color: var(--muted); font-size:.9rem; }
-    .btn { border-radius:.6rem; }
-    .fade-in { animation: fadeInUp .45s ease both; }
-    @keyframes fadeInUp { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
-  </style>
-</head>
+      /* Paginador limpio y profesional */
+      .pagination-clean {
+        display: inline-flex;
+        gap: 0.35rem;
+        padding: 0.35rem;
+        align-items: center;
+      }
+      .pagination-clean .page-item {
+        border-radius: 0.6rem;
+        overflow: hidden;
+        box-shadow: none;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+      .pagination-clean .page-link {
+        color: #4b3b57;
+        background: transparent;
+        border: 1px solid rgba(75, 59, 87, 0.06);
+        padding: 0.38rem 0.62rem;
+        min-width: 36px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        line-height: 1;
+        border-radius: 0.5rem;
+      }
+      .pagination-clean .page-item:not(.active) .page-link:hover {
+        background: rgba(233, 207, 232, 0.45); /* pastel hover */
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(75, 59, 87, 0.06);
+      }
+      .pagination-clean .page-item.active .page-link {
+        background: linear-gradient(180deg, #f7e5f3, #f4d9ee);
+        border-color: rgba(75, 59, 87, 0.12);
+        color: #6a2b62;
+        box-shadow: 0 6px 20px rgba(106, 43, 98, 0.06);
+      }
+      .pagination-clean .page-item.disabled .page-link {
+        color: rgba(75, 59, 87, 0.3);
+        background: transparent;
+        border-color: rgba(75, 59, 87, 0.03);
+        pointer-events: none;
+        opacity: 0.75;
+      }
 
-<body>
-  <nav class="navbar navbar-expand-lg navbar-light navbar-custom shadow-sm">
-    <div class="container">
-      <a class="navbar-brand" href="{% url 'panel_gastos' %}"><i class="bi bi-wallet2 me-1"></i>Gastos</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'panel_fondos' %}"><i class="bi bi-piggy-bank"></i> Fondos</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'resumen' %}"><i class="bi bi-bar-chart"></i> Gráficos</a>
-          </li>
-        </ul>
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          {% if user.is_authenticated %}
-          <li class="nav-item">
-            <span class="nav-link fw-semibold"><i class="bi bi-person-circle"></i> {{ user.username }}</span>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Salir</a>
-          </li>
-          {% else %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Ingresar</a>
-          </li>
-          {% endif %}
-        </ul>
+      /* compact arrows */
+      .pagination-clean .page-link[aria-label] {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        min-width: 40px;
+      }
+
+      /* mobile: tamaño y espaciado adecuado */
+      @media (max-width: 576px) {
+        .pagination-clean .page-link {
+          padding: 0.32rem 0.5rem;
+          min-width: 34px;
+          font-size: 0.88rem;
+        }
+      }
+      /* related resource: bootstrap.min.css:11:122333 */
+      .modal.show .modal-dialog {
+        /* the element was .modal-dialog */
+        pointer-events: auto;
+      }
+
+      /* related resource: bootstrap.min.css:11:123334 */
+      .modal-backdrop.show {
+        /* the element was .modal-backdrop.fade.show */
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'panel_gastos' %}"
+          ><i class="bi bi-wallet2 me-1"></i>Gastos</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarContent"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'panel_fondos' %}"
+                ><i class="bi bi-piggy-bank"></i> Fondos</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'resumen' %}"
+                ><i class="bi bi-bar-chart"></i> Gráficos</a
+              >
+            </li>
+          </ul>
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <span class="nav-link fw-semibold"
+                ><i class="bi bi-person-circle"></i> {{ user.username }}</span
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'logout' %}"
+                ><i class="bi bi-box-arrow-right"></i> Salir</a
+              >
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}"
+                ><i class="bi bi-box-arrow-in-right"></i> Ingresar</a
+              >
+            </li>
+            {% endif %}
+          </ul>
+        </div>
       </div>
+    </nav>
+
+    {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} ">{{ message }}</div>
+      {% endfor %}
     </div>
-  </nav>
+    {% endif %}
 
-  {% if messages %}
-  <div class="container mt-3">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} ">
-      {{ message }}
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+    <main class="container my-4 frosted-backdrop">
+      {% csrf_token %} {% block content %}{% endblock %}
+    </main>
 
-  <main class="container my-4 frosted-backdrop ">
-    {% csrf_token %}
-    {% block content %}{% endblock %}
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  {% block extra_js %}{% endblock %}
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+  </body>
 </html>
